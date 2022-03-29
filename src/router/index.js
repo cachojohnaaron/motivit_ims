@@ -67,7 +67,7 @@ const routes = [
   },
   {
     path: '/assets/RTD',
-    name: 'addryd-RTD',
+    name: 'assets-RTD',
     component: () => import('./../views/Assets-RTD.vue')
   },
   
