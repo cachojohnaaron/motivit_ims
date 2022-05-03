@@ -7,17 +7,23 @@
     <v-row>
     <div class="card-buttons d-flex justify-space-between">
         <span class="page-buttons">
-            <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." style="width:200px; display:inline-block;"/> &nbsp;
-            <span class="me-2 pt-3" v-if="isSearching">
-                <v-chip class="blue lighten-5" style="height:25px;">
-                    <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
-                    <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
-                </v-chip>
+                <span>
+                    
+                    <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+                    <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+                </span> &nbsp;
+                <span class="pt-3" v-if="isSearching">
+                    <v-chip class="blue lighten-5" style="height:25px;">
+                        <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
+                        <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
+                    </v-chip>
+                </span>
             </span>
-        </span>
         <span class="page-buttons">
+            <!--
             <button type="button" class="btn btn-light btn-subheader" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
-            <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Show Deleted</button>
+            -->
+            <button type="button" class="btn btn-light btn-subheader"  @click="goDeleted()">Archives</button>
             <button type="button" class="btn btn-light btn-subheader-third" @click="openAddForm()" data-toggle="modal" data-target="#add-employee" data-backdrop="static" data-keyboard="false">Create New</button>
         </span>
     </div>
@@ -26,22 +32,60 @@
     <!-- eslint-disable -->
     <!-- prettier-ignore -->
     <v-row>
-    <div id="tblUser" class="card" style="width:100%; ">
-        
-        <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
-            <table id="tblEmployeeAll" class="table-sm table-hover" >
+    <div id="tblUser" class="card">
+        <div class="table-responsive-sm" >
+            <div class="d-flex justify-content-end">
+                <!-- Pagination and Rows -->
+                
+                <div class="row align-items-center pagination-buttons"> 
+                    <label class="rows-per-page-label">Rows per page:</label>
+                    <div class="d-grid" >
+                        <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="row pt-2">
+                        <div class="col-auto ms-auto">
+                            <p class="pe-5">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm">
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Table List -->
+            <table id="tblEmployeeAll" class="table-sm table-hover" ref="table" :data="data">
                 <thead class="">
                     <tr>
-                        <th>Employee ID</th>
-                        <th>Name</th>
-                        <th>Department</th>
-                        <th>Email</th>
-                        <th>Notes</th>
+                        <th @click="sort('emp_id')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Employee ID</th>
+                        <th @click="sort('name')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Name</th>
+                        <th @click="sort('department')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Department</th>
+                        <th @click="sort('email')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Email</th>
+                        <th @click="sort('notes')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Notes</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="user in filteredUsers" :key="user">
+                        <tr v-for="user in sortedUsers" :key="user">
                         <td v-html="highlightMatches(user.emp_id)">{{ user.emp_id }}</td>
                         <td v-html="highlightMatches(user.name)">{{ user.name }}</td>
                         <td v-html="highlightMatches(user.department)">{{ user.department }}</td>
@@ -58,6 +102,7 @@
                                 <v-icon color="gray" title="View User Information" style="font-size:16px;">mdi-eye</v-icon>
                             </button>
                         </td>
+                        </tr>
                     </tr>
                 </tbody>
             </table>
@@ -74,7 +119,7 @@
                     <b>
                     <input class="modal-title modal-title-assign" readonly type="text" name="name" id="name" placeholder="" v-model.lazy="UsersData.name" disabled>
                     </b>
-                    <button  type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button @click="cancelModal()" type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -92,13 +137,36 @@
                                     <th>Asset Tag</th>
                                     <th>Asset Model</th>
                                     <th>Transaction Date</th>
-                                  
+                                    
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="item in AssignedItems">
                                     <td>{{ item.asset_tag }}</td>
                                     <td>{{ item.model }}</td>
+                                    <td>{{ item.transaction_date }}</td>
+                                    
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                     <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
+                        <table class="table-sm table-hover" style="width:100%; font-size:11px;">
+                            <thead class="">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>License Name</th>
+                                    <th>Transaction Date</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in AssignedItemsLicenses">
+                                    <td>{{ item.softCategory }}</td>
+                                    <td>{{ item.softName }}</td>
                                     <td>{{ item.transaction_date }}</td>
                                     
                                 </tr>
@@ -115,7 +183,7 @@
                                     <th>Category</th>
                                     <th>Accessory Name</th>
                                     <th>Transaction Date</th>
-                                   
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -123,7 +191,7 @@
                                     <td>{{ item.acs_category }}</td>
                                     <td>{{ item.acs_name }}</td>
                                     <td>{{ item.transaction_date }}</td>
-                                   
+                                    
                                 </tr>
                             </tbody>
                         </table>
@@ -159,7 +227,7 @@
 
                             <div class="form-group mb-2">
                                 <label for="email"><b>Email<span style="color: red;"> *</span></b></label>
-                                <input class="form-control" type="email" name="email" id="email" placeholder="" v-model.lazy="UsersData.email">
+                                <input class="form-control" type="text" name="email" id="email" placeholder="" v-model.lazy="UsersData.email">
                             </div>
                             <div class="form-group mb-2">
                                 <label for="department"><b>Department<span style="color: red;"> *</span></b></label>
@@ -240,7 +308,7 @@
 
                             <div class="form-group">
                                 <label for="email"><b>Email<span style="color: red;"> *</span></b></label>
-                                <input type="email" name="email" class="form-control" id="email" placeholder="" v-model.lazy="UsersData.email" />
+                                <input type="text" name="email" class="form-control" id="email" placeholder="" v-model.lazy="UsersData.email" />
                             </div>
 
                             <div class="form-group">
@@ -269,7 +337,52 @@
         </div>
     </div>
 
+<!--Modal For Return Asset Modal-->
+    <div class="modal fade modal-update-asset" id="rtn-asset" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog rtn-asset" role="document">
+            <div class="modal-content" style="background: #d4dce6;">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel">Return Asset</h6>
+                </div>
+                <div class="modal-body">
+                    <form action="" method="POST">
 
+                        <div style="display:none;">
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="asset_id"><b>Asset ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="asset_id" class="form-control mb-3" id="asset_id" placeholder="" readonly v-model.lazy="UsersData.asset_id" />
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="emp_id"><b>Employee ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="emp_id" class="form-control mb-3" id="emp_id" placeholder="" readonly v-model.lazy="UsersData.emp_id" />
+                                </div>
+                            </div> 
+                        </div>
+
+                        <div style="text-align: center;">
+                            <h6>Are you sure you want to return this asset?</h6>
+                        </div>
+
+                        <hr>
+
+                        <div class="modal-bottom">
+                            <b-button class="mb-3 btn btn-secondary" data-dismiss="modal">Cancel</b-button>
+                            <b-button class="ms-2 mb-3 btn btn-success" block @click.prevent="returnAsset()">Yes</b-button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!--Modal For Delete Employee-->
     <div class="modal fade modal-update-asset" id="delete-employee" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -282,7 +395,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Employee record moved to archived.</div>
+                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Employee record moved to archives.</div>
                 
                     <form action="" method="POST">
 
@@ -328,16 +441,25 @@ import axios from "axios";
 import jsPDF from "jspdf" /*npm install jspdf --save*/
 //import * as XLSX from 'xlsx' /*npm install xlsx*/
 import 'jspdf-autotable' /*npm install jspdf jspdf-autotable*/
-import bcrypt from 'bcryptjs';
 export default {
     name: 'users',
     data() {
         return {
+            /*Pagination*/
+            page: 1,
+            perPage: 10,
+            currentPage: 1,
+            pageSize:5,
+            search: "",
             isSearching: false,
+            pages:5,
+            /*Table Sorting*/
+            currentSort:'emp_id',
+            currentSortDir:'desc',
+            ascSort: true,
             alertSuccess: null,
             alertError: null,
             tbl_assignedItemsAsset: null,
-            search: '',
             UsersData: {
                 user_id: null,
                 name: null,
@@ -349,25 +471,23 @@ export default {
             Departments: [],
             AssignedItems: [],
             AssignedItemsAccessory: [],
+            AssignedItemsLicenses: [],
             filteredUsers: [],
         }
     },
     
     components: { Topbar, Sidebar },
     created() {
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
+        /* auth
+    if (localStorage.getItem('token') == "usertoken") {
+        console.log("authorized");
+        this.getUsers();
     }
-    
+    else {
+        console.log("unauthorized");
+        alert("Unauthorized\nPlease Login Again.");
+        this.$router.push("/");
+    }*/
         this.getAllEmployee();
         this.getDropdowns();
         //this.getAssignedItems();
@@ -391,8 +511,14 @@ export default {
             window.location.reload();
         },
         updateLicense() {
+        /* eslint-disable */
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
             if (!this.UsersData.name || !this.UsersData.department || !this.UsersData.email ) {
                 this.alertError = true;
+            }
+            else if (!this.UsersData.email.match(mailformat))
+            {
+                alert("Please input a valid email address!");
             }
             else {
                 let data = new FormData();
@@ -459,6 +585,18 @@ export default {
                 .catch((err) => {
                     console.log(err);
                 });
+
+            axios.post(
+                "http://localhost/motivit/motivit_ims/src/Api/api.php?action=getAssignedItemsLicenses",
+                data
+                )
+                .then((res) => {
+                    console.log(res.data.user_Data);
+                    this.AssignedItemsLicenses = res.data.user_Data;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         },
         DeleteEmployee() {
             let data = new FormData();
@@ -484,7 +622,25 @@ export default {
             this.UsersData = user_id;
             this.AssignedItems = user_id;
         },
-        
+        returnAsset() {
+            let data = new FormData();
+            data.append("asset_id", this.AssignedItems.asset_id);
+            //data.append("emp_id", this.EmployeeData.emp_id);
+            data.append("emp_id", this.UsersData.emp_id);
+
+            axios.post('http://localhost/motivit/motivit_ims/src/Api/api.php?action=returnAsset', data).then((res) => {
+                if (res.data.error) {
+                    alert("Error");
+                } else {
+                    location.reload();
+                    this.$bvModal.hide('return-asset')
+                    //alert(res.data.message);
+                    
+                }
+            }).catch((err) => {
+                console.log(err);
+            })
+        },
         Reset() {
         this.UsersData.name = "";
         this.UsersData.department = "";
@@ -496,8 +652,15 @@ export default {
             this.alertError = false;
         },
         AddEmployee() {
+        /* eslint-disable */
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        
         if (!this.UsersData.name || !this.UsersData.department || !this.UsersData.email ) {
             this.alertError = true;
+        }
+        else if (!this.UsersData.email.match(mailformat))
+        {
+            alert("Please input a valid email address!");
         }
         else {
             let data = new FormData();
@@ -570,6 +733,22 @@ export default {
                             });
             doc.save('Report-Employee_All.pdf')
         },
+        /*Table Pagination*/
+        nextPage:function() {
+            if((this.currentPage*this.pageSize) < this.filteredUsers.length) this.currentPage++;
+            this.page=this.currentPage;
+        },
+        prevPage:function() {
+            if(this.currentPage > 1) this.currentPage--;
+            this.page=this.currentPage;
+        },
+        /*Table Sorting*/
+        sort:function(s) {
+            //if s == current sort, reverse
+            if(s === this.currentSort) {
+                this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
+            } this.currentSort = s;
+        },
         setEmployeesDebounced: debounce(function(search) {
             this.isSearching = true;
             setTimeout(function(){
@@ -591,19 +770,21 @@ export default {
             return text.replace(re, matchedText => `<b style="background-color: yellow;">${matchedText}</b>`);
         }
     },
-    /**
     computed: {
-        filteredUsers() {
-            return this.Users.filter((user) => {
-                return user.emp_id.toLowerCase().includes(this.search.toLowerCase()) ||
-                    user.name.toLowerCase().includes(this.search.toLowerCase()) ||
-                    user.department.toLowerCase().includes(this.search.toLowerCase()) ||
-                    user.email.toLowerCase().includes(this.search.toLowerCase()) ||
-                    user.notes.toLowerCase().includes(this.search.toLowerCase());
+        sortedUsers: function() {
+            return this.filteredUsers.filter((row, index) => {
+                let start = (this.currentPage-1)*this.pageSize;
+                let end = this.currentPage*this.pageSize;
+                if(index >= start && index < end) return true;
+            }).sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc') modifier = -1;
+                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
             });
         }
     }
-    */
 }
 </script>
 
@@ -621,6 +802,9 @@ label, input, textarea, select, .form-control{
 input, .form-control{
     height:23px;
     width:100%;
+}
+th.pointer {
+    cursor: pointer;
 }
 .form-group{
     width: 150px;
@@ -647,7 +831,27 @@ input, .form-control{
 .modal-title-assign{
     background:white;border: none; width: fit-content; padding:0; margin-left:5px;
 }
-
+.pagination-buttons{
+    height:fit-content; 
+    margin-bottom:-10px; 
+    padding-left:15px;
+    margin-top:5px;
+}
+.page-link-lr{
+    height:20px; padding-top:0 !important;
+}
+.page-link-mid{
+    height:20px; padding: top 2px !important; font-size:11px !important; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px !important; padding-top:0 !important; padding-bottom:0 !important; font-size: 12px;
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
+}
+table{
+    margin-top: -15px;
+}
 
 
 </style>

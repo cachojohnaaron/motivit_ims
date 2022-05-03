@@ -4,6 +4,9 @@
     <Topbar @drawerEvent="drawer = !drawer" />
     <h6 class="page-header" style="margin-left:0px !important;">Report Generation for Accessories</h6>
 
+    <v-alert icon="mdi-clock-fast" prominent text type="info"  style="width:fit-content;">
+      <small>Show all lead generation form responses received between the chosen dates.</small>
+    </v-alert>
 
     <button class="btn btn-primary btn-gen-rep" data-toggle="modal" data-target="#modal-AllAccessory" data-backdrop="static" data-keyboard="false">All Accessories</button>
     <br>
@@ -59,9 +62,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_AllAccessories('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
       
                     </form>
@@ -86,21 +91,23 @@
                     <form action="">
                     <label>Custom Date Range (Deploy Date):</label>
                         <div class="row align-items-center">
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-2">
+                                <button @click.prevent="filterAccessoriesByDeployDate()" class="btn btn-primary block">Filter</button>
+                            </div>
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">From</span>
                                     
                                     <input type="date" id="start-date" class="start-date form-control" v-model="UserInput.start_date">
                                 </div>
                             </div>
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">To</span>
                                    <input type="date" id="end-date" class="end-date form-control" v-model="UserInput.end_date">
                                 </div>
                             </div>
                         </div>
-                        <div><button @click.prevent="filterAccessoriesByDeployDate()" class="btn btn-primary block">Filter</button></div>
                     </form>
 
 
@@ -155,11 +162,13 @@
                         <!-- Export buttons option 1-->
                         <div class="row align-items-center" v-if="allAssetsOption">
                             <div class="d-grid col-6">
-                                <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_allAsset('pdf')">PDF</button>
+                                <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_AllDeployed('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
 
                         <!-- Export button option 2 -->
@@ -167,9 +176,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_filteredDeployedDate('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
                         
                     </form>
@@ -193,22 +204,25 @@
 
                     <form action="">
                     <label>Custom Date Range (Transaction Date):</label>
+
                         <div class="row align-items-center">
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-2">
+                                <button @click.prevent="filterAccessoriesByTransactionDate()" class="btn btn-primary block">Filter</button>
+                            </div>
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">From</span>
                                     
                                     <input type="date" id="start-date" class="start-date form-control" v-model="UserInput.start_date">
                                 </div>
                             </div>
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">To</span>
                                    <input type="date" id="end-date" class="end-date form-control" v-model="UserInput.end_date">
                                 </div>
                             </div>
                         </div>
-                        <div><button @click.prevent="filterAccessoriesByTransactionDate()" class="btn btn-primary block">Filter</button></div>
                     </form>
 
 
@@ -269,9 +283,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_AllAccessoryTransactions('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
 
                         <!-- Export button option 2 -->
@@ -279,9 +295,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_filteredTransactionDate('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
                         
                     </form>
@@ -437,8 +455,8 @@ export default {
             this.curdate = new Date().toLocaleString();
             const doc = new jsPDF('l', 'mm', 'legal')
             
-            var y = 20;
-            doc.text(135, y = y + 0, "ALL ACCESSORIES RECORD"); /* x-align = 125 */
+            var y = 10;
+            doc.text(125, y = y + 0, "ALL ACCESSORIES RECORD"); /* x-align = 125 */
             doc.text(125, y = y + 5, "As of "+this.curdate );
             doc.autoTable({ html: '#tblAllAccessories',
                             startY: 25,
@@ -452,13 +470,32 @@ export default {
                             });
             doc.save('Report-Accessories_All.pdf')
         },
+        PDF_AllDeployed() {
+            this.curdate = new Date().toLocaleString();
+            const doc = new jsPDF('l', 'mm', 'legal')
+            
+            var y = 10;
+            doc.text(118, y = y + 0, "ALL DEPLOYED ACCESSORIES RECORD"); /* x-align = 125 */
+            doc.text(125, y = y + 5, "As of "+this.curdate );
+            doc.autoTable({ html: '#tblAccessoryDeployed',
+                            startY: 25,
+                            styles: {
+                                cellWidth: 'wrap'
+                            },
+                            columnStyles: {
+                                1: {columnWidth: 'auto'}
+                            },
+                            columns: [0,1,2,3,4,5,6,7,8],
+                            });
+            doc.save('Report-Accessories_AllDeployed.pdf')
+        },
         PDF_AllAccessoryTransactions() {
             this.curdate = new Date().toLocaleString();
             const doc = new jsPDF('l', 'mm', 'legal')
             
-            var y = 20;
-            doc.text(135, y = y + 0, "ALL ACCESSORIES TRANSACTIONS"); /* x-align = 125 */
-            doc.text(125, y = y + 5, "As of "+this.curdate );
+            var y = 10;
+            doc.text(125, y = y + 0, "ALL ACCESSORIES TRANSACTIONS"); /* x-align = 125 */
+            doc.text(126, y = y + 5, "As of "+this.curdate );
             doc.autoTable({ html: '#tblAccessoryTransactions',
                             startY: 25,
                             styles: {
@@ -477,7 +514,7 @@ export default {
             const doc = new jsPDF('l', 'mm', 'legal')
             
             var y = 20;
-            doc.text(115, y = y + 0, "Deployed Accessories from '"+this.UserInput.start_date+"' to '"+this.UserInput.end_date+"'");
+            doc.text(90, y = y + 0, "Deployed Accessories from '"+this.UserInput.start_date+"' to '"+this.UserInput.end_date+"'");
             doc.text(125, y = y + 5, "As of "+this.curdate );
             doc.autoTable({ html: '#tblfilteredAccessories',
                             startY: 50,
@@ -497,7 +534,7 @@ export default {
             const doc = new jsPDF('l', 'mm', 'legal')
             
             var y = 20;
-            doc.text(100, y = y + 0, "Accessories Deploy And Return Transactions from '"+this.UserInput.start_date+"' to '"+this.UserInput.end_date+"'");
+            doc.text(70, y = y + 0, "Accessories Deploy And Return Transactions from '"+this.UserInput.start_date+"' to '"+this.UserInput.end_date+"'");
             doc.text(125, y = y + 5, "As of "+this.curdate );
             doc.autoTable({ html: '#tblfilteredAccessoriesTransactions',
                             startY: 50,

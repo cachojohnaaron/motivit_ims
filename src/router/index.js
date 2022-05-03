@@ -129,6 +129,11 @@ const routes = [
     name: 'reports-accessories',
     component: () => import('./../views/reports/Report-Accessories.vue')
   },
+  {
+    path: '/reports/licenses',
+    name: 'reports-licenses',
+    component: () => import('./../views/reports/Report-Licenses.vue')
+  },
   
 
   {

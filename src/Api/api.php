@@ -26,6 +26,13 @@ if (isset($_GET['action'])){
     $action=$_GET['action'];
 }
 
+function clean($value){
+    $value = trim($value);
+    $value = stripsslashes($value);
+    $value = strip_tags($value);
+
+    return $value;
+}
 
 /*admin functions*/
 
@@ -48,10 +55,10 @@ if($action=="login"){
 //working 3-8-22
 if($action=='addemployee'){
 
-	$name = $_POST['name'];
-	$email = $_POST['email'];
-	$department = $_POST['department'];
-	$notes = $_POST['notes'];
+	$name = clean($_POST['name']);
+	$email = clean($_POST['email']);
+	$department = clean($_POST['department']);
+	$notes = clean($_POST['notes']);
 
     $testquery = "SELECT * FROM employee where name = '$name'";
     $testresult = $conn->query($testquery);
@@ -147,11 +154,11 @@ if($action=='disableEmployee'){
 //working 3-11-22
 if($action=='updateEmployee'){
 
-	$emp_id = $_POST['emp_id'];
-	$name = $_POST['name'];
-	$email = $_POST['email'];
-	$department = $_POST['department'];
-	$notes = $_POST['notes'];
+	$emp_id = clean($_POST['emp_id']);
+	$name = clean($_POST['name']);
+	$email = clean($_POST['email']);
+	$department = clean($_POST['department']);
+	$notes = clean($_POST['notes']);
 
     $sql = "UPDATE `employee` SET `name` = '$name', `department` = '$department', `email` = '$email', `notes` = '$notes' WHERE `employee`.`emp_id` = $emp_id";
     $result=$conn->query($sql);
@@ -167,15 +174,15 @@ if($action=='updateEmployee'){
 //working 3-8-22
 if($action=='addasset'){
 
-	$asset_tag = $_POST['asset_tag'];
-	$serialno = $_POST['serialno'];
-	$model = $_POST['model'];
+	$asset_tag = clean($_POST['asset_tag']);
+	$serialno = clean($_POST['serialno']);
+	$model = clean($_POST['model']);
 	//$status = $_POST['status'];
-	$category = $_POST['category'];
-	$purchase_date = $_POST['purchase_date'];
-	$supplier = $_POST['supplier'];
-	$notes = $_POST['notes'];
-	$asset_location = $_POST['asset_location'];
+	$category = clean($_POST['category']);
+	$purchase_date = clean($_POST['purchase_date']);
+	$supplier = clean($_POST['supplier']);
+	$notes = clean($_POST['notes']);
+	$asset_location = clean($_POST['asset_location']);
 	
 
     $testquery = "SELECT * FROM asset where asset_tag = '$asset_tag' AND visibility = 'true'";
@@ -364,11 +371,11 @@ if($action=='deployAsset'){
 //working
 if($action=='addaccessory'){
 
-	$acs_name = $_POST['acs_name'];
-	$acs_category = $_POST['acs_category'];
-	$acs_manufacturer = $_POST['acs_manufacturer'];
-	$quantity = $_POST['quantity'];
-	$location = $_POST['location'];
+	$acs_name = clean($_POST['acs_name']);
+	$acs_category = clean($_POST['acs_category']);
+	$acs_manufacturer = clean($_POST['acs_manufacturer']);
+	$quantity = clean($_POST['quantity']);
+	$location = clean($_POST['location']);
 
 	$sql="INSERT INTO `accessory` (`acs_id`, `acs_name`, `acs_category`, `acs_manufacturer`, `quantity`, `acs_img`, `location`, `visibility`) VALUES (NULL, '$acs_name', '$acs_category', '$acs_manufacturer', '$quantity', NULL, '$location', 'true')";
 	$result=$conn->query($sql);
@@ -419,12 +426,12 @@ if($action=='getallaccessorydeleted'){
 }
 
 if($action=='updateAccessory'){
-	$acs_id = $_POST['acs_id'];
-	$acs_name = $_POST['acs_name'];
-	$acs_category = $_POST['acs_category'];
-	$acs_manufacturer = $_POST['acs_manufacturer'];
-	$quantity = $_POST['quantity'];
-	$location = $_POST['location'];
+	$acs_id = clean($_POST['acs_id']);
+	$acs_name = clean($_POST['acs_name']);
+	$acs_category = clean($_POST['acs_category']);
+	$acs_manufacturer = clean($_POST['acs_manufacturer']);
+	$quantity = clean($_POST['quantity']);
+	$location = clean($_POST['location']);
 
 	$sql = "UPDATE `accessory` SET `acs_name` = '$acs_name', `acs_category` = '$acs_category', `acs_manufacturer` = '$acs_manufacturer', `quantity` = '$quantity', `location` = '$location' WHERE `accessory`.`acs_id` = $acs_id";
     //$sql = "UPDATE `accessory` SET `acs_name` = '$acs_name', `acs_category` = '$acs_category', `acs_manufacturer` = '$acs_manufacturer', `quantity` = '$quantity', `location` = '$location', WHERE `accessory`.`acs_id` = $acs_id";
@@ -473,36 +480,6 @@ if($action=='deployAccessory'){
 		$res['message']="Somthing Went Wrong";
 	}
 }
-/*if($action=='deployAccessory'){
-
-	$acs_id = $_POST['acs_id'];
-	$emp_id = $_POST['emp_id'];
-
-	$validate = "SELECT * FROM `assign_accessory` WHERE `acs_id` = $acs_id AND `emp_id` = $emp_id";
-	$sql="INSERT INTO `assign_accessory` (`assign_accessory_id`, `acs_id`, `emp_id`, `transaction_type`, `transaction_date`, `transaction_status`) VALUES (NULL, '$acs_id', '$emp_id', 'checkout', NOW(), 'deployed');";
-	$updatequery = "UPDATE `accessory` SET quantity = quantity-1 WHERE `accessory`.`acs_id` = $acs_id;";
-	
-	$validateResult = $conn->query($validate);
-	$result=$conn->query($sql);
-	$num=mysqli_num_rows($validateResult);
-
-	if($num > 0){
-		if($result===true){
-			$updResult = $conn->query($updatequery);
-			if ($updResult === true) {
-			$res['error']=false;
-			$res['message']="Accessory Deployed Successfully";
-			}
-		}
-
-		$res['error']=true;
-		$res['message']="Somthing Went Wrong";
-
-	}else{
-		$res['error']=true;
-        $res['message']="Already Assigned to this Employee!";
-	}
-}*/
 
 if($action=='getallaccessoryDeployed'){
 	$sql="SELECT * FROM assign_accessory, employee, accessory 
@@ -600,7 +577,7 @@ if($action=='getAssignedItems'){
         $res['message']="No Data Found!";
 	}	
 }
-
+ 
 if($action=='getAssignedItemsAccessory'){
 	$emp_id = $_POST['emp_id'];
 
@@ -627,35 +604,30 @@ if($action=='getAssignedItemsAccessory'){
 	}	
 }
 
+if($action=='getAssignedItemsLicenses'){
+	$emp_id = $_POST['emp_id'];
 
+	$sql="SELECT * FROM deploy_license, employee, license
+		WHERE employee.emp_id = $emp_id 
+		AND (employee.emp_id = deploy_license.emp_id 
+		AND deploy_license.softID = license.softID)
+		AND deploy_license.visibility = 'true' 
+		AND deploy_license.status = 'Deployed'";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//jdhjdhjhjdhjdhjdhjdhdj
+	}else{
+		$res['error']=true;
+        $res['message']="No Data Found!";
+	}	
+}
 
 if($action=='getalluser'){
 	$sql="SELECT * FROM `user` WHERE status='enabled' ORDER BY user_id desc";
@@ -691,29 +663,6 @@ if($action=='disableUser'){
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if($action=='editUser'){
 
 	$username=$_POST['username'];
@@ -731,9 +680,6 @@ if($action=='editUser'){
 	}
 
 }
-
-
-
 
 if ($action == "deleteUser") {
 	//$username=$_POST['username'];

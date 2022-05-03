@@ -7,8 +7,11 @@
     <v-row>
         <div class="card-buttons d-flex justify-space-between">
             <span class="page-buttons">
-                <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." /> &nbsp;
-                <span class="me-2 pt-3" v-if="isSearching">
+                <span>
+                    <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+                    <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+                </span> &nbsp;
+                <span class="pt-3" v-if="isSearching">
                     <v-chip class="blue lighten-5" style="height:25px;">
                         <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
                         <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
@@ -16,8 +19,10 @@
                 </span>
             </span>
             <span class="page-buttons">
+                <!--
                 <button type="button" class="btn btn-light btn-subheader" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
-                <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Show Deleted</button>
+                -->
+                <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Archives</button>
                 <button type="button" class="btn btn-light btn-subheader-third" @click="openAddForm()" data-toggle="modal" data-target="#add-accessory" data-backdrop="static" data-keyboard="false">Create New</button>
             </span>
         </div>
@@ -26,24 +31,63 @@
     <!-- eslint-disable -->
     <!-- prettier-ignore -->
     <v-row>
-        <div id="tblUser" class="card" style="width:100%; padding:5px;">
-
-            <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
-                <table id="tblAccessoryAll" class="table-sm table-hover">
-                    <thead class="">
-                        <tr>
-                            <th>Accessory ID</th>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Manufacturer</th>
-                            <th title="Orange: items <= 5
+        <div id="tblUser" class="card" >
+            <div class="table-responsive-sm" >
+                <div class="d-flex justify-content-end">
+                <!-- Pagination and Rows -->
+                
+                <div class="row align-items-center pagination-buttons"> 
+                    <label class="rows-per-page-label">Rows per page:</label>
+                    <div class="d-grid">
+                        <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="row pt-2">
+                        <div class="col-auto ms-auto">
+                            <p class="pe-5">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm">
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Table List -->
+            <table id="tblAccessoryAll" class="table-sm table-hover" ref="table" :data="data">
+                <thead class="">
+                    <tr>
+                        <th @click="sort('acs_id')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Accessory ID</th>
+                        <th @click="sort('acs_name')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Name</th>
+                        <th @click="sort('acs_category')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Category</th>
+                        <th @click="sort('acs_manufacturer')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Manufacturer</th>
+                        <th @click="sort('quantity')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort
+Orange: items <= 5
 Red: items = 0">Quantity</th>
-                            <th>Location</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="acs in filteredAccessory" :key="acs">
+                        <th @click="sort('location')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="acs in filteredAccessory" :key="acs">
+                        <tr v-for="acs in sortedAccessory" :key="acs">
                             <td v-html="highlightMatches(acs.acs_id)">{{ acs.acs_id }}</td>
                             <td v-html="highlightMatches(acs.acs_name)">{{ acs.acs_name }}</td>
                             <td v-html="highlightMatches(acs.acs_category)">{{ acs.acs_category }}</td>
@@ -59,13 +103,14 @@ Red: items = 0">Quantity</th>
                                 <button class="btn-sm btn-action" @click="showModal(acs)" modal-no-backdrop data-toggle="modal" data-target="#upd-accessory" data-backdrop="static" data-keyboard="false">
                                     <v-icon color="success" title="Edit Accessory" style="font-size:16px;">mdi-pencil</v-icon>
                                 </button>
-                                <button class="btn-sm btn-action"@click="showModalDelete(acs)" modal-no-backdrop data-toggle="modal" data-target="#delete-accessory">
+                                <button class="btn-sm btn-action"  @click="showModalDelete(acs)" modal-no-backdrop data-toggle="modal" data-target="#delete-accessory">
                                     <v-icon color="red" title="Delete Accessory" style="font-size:16px;">mdi-delete</v-icon>
                                 </button>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
+                    </tr>
+                </tbody>
+            </table>
             </div>
         </div>
     </v-row>
@@ -244,7 +289,7 @@ Red: items = 0">Quantity</th>
 
                             <hr>
                             <div class="modal-bottom">
-                                <button class="mb-3 btn btn-secondary"  data-dismiss="modal">Cancel</button>
+                                <button class="mb-3 btn btn-secondary" block @click="cancelModal()" data-dismiss="modal">Cancel</button>
                                 <button class="ms-2 mb-3 btn btn-warning" block @click.prevent="deployAccessory()">Deploy</button>
                             </div>
 
@@ -315,7 +360,7 @@ Red: items = 0">Quantity</th>
         </div>
     </div>
 
-    <!--Modal For Delete Accessory Modal-->
+     <!--Modal For Delete Accessory Modal-->
     <div class="modal fade modal-update-asset" id="delete-accessory" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog rtn-asset" role="document">
             <div class="modal-content">
@@ -326,7 +371,7 @@ Red: items = 0">Quantity</th>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Accessory record moved to archived.</div>
+                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Accessory record moved to archives.</div>
                 
                     <form action="" method="POST">
 
@@ -375,13 +420,22 @@ import axios from "axios";
 import jsPDF from "jspdf" /*npm install jspdf --save*/
 //import * as XLSX from 'xlsx' /*npm install xlsx*/
 import 'jspdf-autotable' /*npm install jspdf jspdf-autotable*/
-import bcrypt from "bcryptjs";
 export default {
     name: 'accessory',
     data() {
         return {
+            /*Pagination*/
+            page: 1,
+            perPage: 10,
+            currentPage: 1,
+            pageSize:5,
+            search: "",
             isSearching: false,
-            search: '',
+            pages:5,
+            /*Table Sorting*/
+            currentSort:'acs_id',
+            currentSortDir:'desc',
+            ascSort: true,
             alertSuccess: null,
             alertError: null,
             UsersData: {
@@ -404,19 +458,16 @@ export default {
         Sidebar
     },
     created() {
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
+        /* auth
+    if (localStorage.getItem('token') == "usertoken") {
+        console.log("authorized");
+        this.getUsers();
     }
-    
+    else {
+        console.log("unauthorized");
+        alert("Unauthorized\nPlease Login Again.");
+        this.$router.push("/");
+    }*/
         this.getAllAssets();
         this.getDropdownEmployee();
         this.getDropdowns();
@@ -438,34 +489,14 @@ export default {
         showModal(user_id) {
             this.UsersData = user_id;
         },
-        showModalDelete(softID) {
-            this.UsersData = softID;
-        },
         showDeployModal(user_id) {
             this.UsersData = user_id;
         },
+        showModalDelete(softID) {
+            this.UsersData = softID;
+        },
         cancelModal() {
             window.location.reload();
-        },
-        DeleteAccessory() {
-            let data = new FormData();
-            //this.UsersData = user_id;
-            data.append("id", this.UsersData.acs_id);
-
-            axios
-                .post("http://localhost/motivit/motivit_ims/src/Api/api.php?action=disableAccessory", data)
-                .then((res) => {
-                    if (res.data.error) {
-                        alert("ERR");
-                    } else {
-                        
-                        this.alertSuccess = true;
-                        setTimeout(function () {
-                            window.location.reload()
-                        }, 1000);
-                        this.getAllAccessories();
-                    }
-                })
         },
         updateAccessory() {
             if (!this.UsersData.acs_name || !this.UsersData.acs_category || !this.UsersData.acs_manufacturer || !this.UsersData.quantity || !this.UsersData.location) {
@@ -521,9 +552,9 @@ export default {
                     console.log(err);
                 });
         },
-        DeleteAsset(user_id) {
+        DeleteAccessory() {
             let data = new FormData();
-            this.UsersData = user_id;
+            //this.UsersData = user_id;
             data.append("id", this.UsersData.acs_id);
 
             axios
@@ -532,19 +563,19 @@ export default {
                     if (res.data.error) {
                         alert("ERR");
                     } else {
-                        this.getAllAssets();
-                        alert(res.data.message);
+                        
+                        this.alertSuccess = true;
+                        setTimeout(function () {
+                            window.location.reload()
+                        }, 1000);
+                        this.getAllAccessories();
                     }
                 })
         },
         deployAccessory() {
             if (!this.UsersData.employee) {
                 this.alertError = true;
-            } 
-            else if (this.UsersData.quantity == 0) {
-                this.alertError = true;
-            }
-            else {
+            } else {
                 let data = new FormData();
                 data.append("acs_id", this.UsersData.acs_id);
                 data.append("emp_id", this.UsersData.employee);
@@ -673,6 +704,22 @@ export default {
             });
             doc.save('Report-Accessory_All.pdf')
         },
+        /*Table Pagination*/
+        nextPage:function() {
+            if((this.currentPage*this.pageSize) < this.filteredAccessory.length) this.currentPage++;
+            this.page=this.currentPage;
+        },
+        prevPage:function() {
+            if(this.currentPage > 1) this.currentPage--;
+            this.page=this.currentPage;
+        },
+        /*Table Sorting*/
+        sort:function(s) {
+            //if s == current sort, reverse
+            if(s === this.currentSort) {
+                this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
+            } this.currentSort = s;
+        },
         setAccessoriesDebounced: debounce(function (search) {
             this.isSearching = true;
             setTimeout(function () {
@@ -695,19 +742,21 @@ export default {
             return text.replace(re, matchedText => `<b style="background-color: yellow;">${matchedText}</b>`);
         }
     },
-    /**
     computed: {
-        filteredAccessory() {
-            return this.Accessory.filter((acs) => {
-                return acs.acs_id.toLowerCase().includes(this.search.toLowerCase()) ||
-                   acs.acs_name.toLowerCase().includes(this.search.toLowerCase()) ||
-                   acs.acs_category.toLowerCase().includes(this.search.toLowerCase()) ||
-                    acs.acs_manufacturer.toLowerCase().includes(this.search.toLowerCase()) ||
-                    acs.location.toLowerCase().includes(this.search.toLowerCase());
+        sortedAccessory: function() {
+            return this.filteredAccessory.filter((row, index) => {
+                let start = (this.currentPage-1)*this.pageSize;
+                let end = this.currentPage*this.pageSize;
+                if(index >= start && index < end) return true;
+            }).sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc') modifier = -1;
+                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
             });
         }
     }
-    */
 };
 </script>
 
@@ -723,6 +772,10 @@ input,
 textarea,
 select {
     font-size: 11px;
+}
+
+th.pointer {
+    cursor: pointer;
 }
 
 input {
@@ -762,5 +815,25 @@ input {
 hr {
     margin-top: -10px;
 }
-
+.pagination-buttons{
+    height:fit-content; 
+    margin-bottom:-10px; 
+    padding-left:15px;
+    margin-top:5px;
+}
+.page-link-lr{
+    height:20px; padding-top:0;
+}
+.page-link-mid{
+    height:20px; padding-top:2px; font-size:11px; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px; padding-top:0; padding-bottom:0; 
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
+}
+table{
+    margin-top: -15px;
+}
 </style>

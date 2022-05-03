@@ -1,14 +1,17 @@
 <template>
 <div class="dashboard">
     <Sidebar />
-    <Topbar  />
-    
-        <h6 class="page-header"><strong>Archived Assets </strong></h6>
+    <Topbar />
+
+    <h6 class="page-header"><strong>Archived Assets </strong></h6>
     <v-row>
         <div class="card-buttons d-flex justify-space-between">
             <span class="page-buttons">
-                <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." /> &nbsp;
-                <span class="me-2 pt-3" v-if="isSearching">
+                <span>
+                    <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." />
+                    <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+                </span> &nbsp;
+                <span class="pt-3" v-if="isSearching">
                     <v-chip class="blue lighten-5" style="height:25px;">
                         <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
                         <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
@@ -16,35 +19,72 @@
                 </span>
             </span>
             <span class="page-buttons">
+                <!--
             <button type="button" class="btn btn-light btn-subheader-third" @click="showExport()" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
+                -->
             </span>
         </div>
     </v-row>
-    <v-row> 
+    <v-row>
         <!-- eslint-disable -->
         <!-- prettier-ignore -->
-
-        <div id="tblUser" class="card" style="width:100%; padding:5px;">
-            
-            <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
-                <table id="tblAllAsset" class="table-sm table-hover" >
+        <div id="tblUser" class="card">
+            <div class="table-responsive-sm">
+                <div class="d-flex justify-content-end mb-3">
+                    <!-- Pagination and Rows -->
+                    <div class="row align-items-center pagination-buttons">
+                        <label class="rows-per-page-label">Rows per page:</label>
+                        <div class="d-grid">
+                            <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <div class="row pt-2">
+                            <div class="col-auto ms-auto">
+                                <p class="pe-5">
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm">
+                                            <li class="page-item">
+                                                <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                                            <li class="page-item">
+                                                <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table id="tblAllAsset" class="table-sm table-hover">
                     <thead class="">
                         <tr>
-                            <th>Asset ID</th>
-                            <th>Asset Tag</th>
-                            <th>Serial Number</th>
-                            <th>Category</th>
-                            <th>Model</th>
-                            <th>Status</th>
-                            <th>Purchase Date</th>
-                            <th>Supplier</th>
-                            <th>Location</th>
+                            <th @click="sort('asset_id')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Asset ID</th>
+                            <th @click="sort('asset_tag')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Asset Tag</th>
+                            <th @click="sort('serialno')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Serial Number</th>
+                            <th @click="sort('category')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Category</th>
+                            <th @click="sort('model')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Model</th>
+                            <th @click="sort('status')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Status</th>
+                            <th @click="sort('purchase_date')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Purchase Date</th>
+                            <th @click="sort('supplier')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Supplier</th>
+                            <th @click="sort('asset_location')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Location</th>
                             <th>Notes</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="asset in filteredAssets" :key="asset">
+                        <tr v-for="asset in sortedAssets" :key="asset">
                             <td v-html="highlightMatches(asset.asset_id)">{{ asset.asset_id }}</td>
                             <td v-html="highlightMatches(asset.asset_tag)">{{ asset.asset_tag }}</td>
                             <td v-html="highlightMatches(asset.serialno)">{{ asset.serialno }}</td>
@@ -56,8 +96,9 @@
                             <td v-html="highlightMatches(asset.asset_location)">{{ asset.asset_location }}</td>
                             <td v-html="highlightMatches(asset.notes)">{{ asset.notes }}</td>
                             <td>
-                                
+
                             </td>
+                        </tr>
                         </tr>
                     </tbody>
                 </table>
@@ -77,37 +118,36 @@
                 </div>
                 <div class="modal-body">
                     <!-- Export Date Range -->
-                        <label>Custom Date Range:</label>
-                        <div class="row align-items-center">
-                            <div class="d-grid col-6">
-                                <div class="input-group flex-nowrap">
-                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase"><small>From</small></span>
-                                    <input type="date" class="start-date form-control" id="fromDate" name="fromDate" aria-describedby="addon-wrapping">
-                                </div>
-                            </div>
-                            <div class="d-grid col-6">
-                                <div class="input-group flex-nowrap">
-                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase"><small>To</small></span>
-                                    <input type="date" class="end-date form-control" id="toDate" name="toDate" aria-describedby="addon-wrapping">
-                                </div>
+                    <label>Custom Date Range:</label>
+                    <div class="row align-items-center">
+                        <div class="d-grid col-6">
+                            <div class="input-group flex-nowrap">
+                                <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase"><small>From</small></span>
+                                <input type="date" class="start-date form-control" id="fromDate" name="fromDate" aria-describedby="addon-wrapping">
                             </div>
                         </div>
-                        <!-- Export Options (xlsx/jspdf) -->
-                        <label class="mt-3">Export Options:</label>
-                        <div class="row align-items-center"> 
-                            <div class="d-grid col-6">
+                        <div class="d-grid col-6">
+                            <div class="input-group flex-nowrap">
+                                <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase"><small>To</small></span>
+                                <input type="date" class="end-date form-control" id="toDate" name="toDate" aria-describedby="addon-wrapping">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Export Options (xlsx/jspdf) -->
+                    <label class="mt-3">Export Options:</label>
+                    <div class="row align-items-center">
+                        <div class="d-grid col-6">
                             <button class="btn btn-primary btn-block" v-on:click="exportPDF('pdf')">PDF</button>
-                            </div>
-                            <div class="d-grid col-6">
-                            <button class="btn btn-primary btn-block" @click="exportExcel('xlsx')">Excel</button>
-                            </div>
                         </div>
+                        <div class="d-grid col-6">
+                            <button class="btn btn-primary btn-block" @click="exportExcel('xlsx')">Excel</button>
+                        </div>
+                    </div>
                     <!--</form>-->
                 </div>
             </div>
         </div>
     </div>
-
 
 </div>
 </template>
@@ -115,18 +155,29 @@
 <script>
 import Sidebar from "../../components/Sidebar";
 import Topbar from "../../components/Topbar";
-import { debounce } from "lodash";
+import {
+    debounce
+} from "lodash";
 import axios from "axios";
 import jsPDF from "jspdf" /*npm install jspdf --save*/
 //import * as XLSX from 'xlsx' /*npm install xlsx*/
 import 'jspdf-autotable' /*npm install jspdf jspdf-autotable*/
-import bcrypt from 'bcryptjs';
 export default {
     name: "asset",
     data() {
         return {
+            /*Pagination*/
+            page: 1,
+            perPage: 10,
+            currentPage: 1,
+            pageSize: 5,
+            search: "",
             isSearching: false,
-            search: '',
+            pages: 5,
+            /*Table Sorting*/
+            currentSort: 'asset_id',
+            currentSortDir: 'desc',
+            ascSort: true,
             UsersData: {
                 user_id: null,
                 /**From AddAsset.vue */
@@ -142,31 +193,32 @@ export default {
                 /**From AddAsset.vue */
             },
             Assets: [],
+            filteredAssets: [],
         };
     },
-    components: { Topbar, Sidebar },
+    components: {
+        Topbar,
+        Sidebar
+    },
     created() {
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
+        /* auth
+    if (localStorage.getItem('token') == "usertoken") {
+        console.log("authorized");
+        this.getUsers();
     }
-    
+    else {
+        console.log("unauthorized");
+        alert("Unauthorized\nPlease Login Again.");
+        this.$router.push("/");
+    }*/
         this.getAllAssets();
     },
     watch: {
         search: {
-        handler(search) {
-            this.setAssetsArchivedDebounced(search)
-        },
-        immediate: true,
+            handler(search) {
+                this.setAssetsArchivedDebounced(search)
+            },
+            immediate: true,
         }
     },
     methods: {
@@ -185,49 +237,87 @@ export default {
         },
         exportPDF() {
             const doc = new jsPDF('l', 'mm', 'legal')
-            
+
             var y = 20;
             doc.text(135, y = y + 15, "ALL DELETED ASSETS RECORD"); /* x-align = 125 */
-            doc.autoTable({ html: '#tblAllAsset',
-                            startY: 50,
-                            styles: {
-                                cellWidth: 'wrap'
-                            },
-                            columnStyles: {
-                                1: {columnWidth: 'auto'}
-                            },
-                            columns: [
-                                { header: 'asset_id' },
-                                { header: 'asset_tag' },
-                                { header: 'serial_no' },
-                                { header: 'category' },
-                                { header: 'model' },
-                                { header: 'status' },
-                                { header: 'purhase_date' },
-                                { header: 'supplier' },
-                                { header: 'location' },
+            doc.autoTable({
+                html: '#tblAllAsset',
+                startY: 50,
+                styles: {
+                    cellWidth: 'wrap'
+                },
+                columnStyles: {
+                    1: {
+                        columnWidth: 'auto'
+                    }
+                },
+                columns: [{
+                        header: 'asset_id'
+                    },
+                    {
+                        header: 'asset_tag'
+                    },
+                    {
+                        header: 'serial_no'
+                    },
+                    {
+                        header: 'category'
+                    },
+                    {
+                        header: 'model'
+                    },
+                    {
+                        header: 'status'
+                    },
+                    {
+                        header: 'purhase_date'
+                    },
+                    {
+                        header: 'supplier'
+                    },
+                    {
+                        header: 'location'
+                    },
 
-                            ],
-                            });
+                ],
+            });
             doc.save('Report-Asset_Deleted.pdf')
         },
-        setAssetsArchivedDebounced: debounce(function(search) {
+        /*Table Pagination*/
+        nextPage: function () {
+            if ((this.currentPage * this.pageSize) < this.filteredAssets.length) this.currentPage++;
+            this.page = this.currentPage;
+        },
+        prevPage: function () {
+            if (this.currentPage > 1) this.currentPage--;
+            this.page = this.currentPage;
+        },
+        /*Table Sorting*/
+        sort: function (s) {
+            //if s == current sort, reverse
+            if (s === this.currentSort) {
+                this.currentSortDir = this.currentSortDir === 'desc' ? 'asc' : 'desc';
+            }
+            this.currentSort = s;
+        },
+        /*Search Filter*/
+        setAssetsArchivedDebounced: debounce(function (search) {
             this.isSearching = true;
-            setTimeout(function(){
-				this.isSearching = false;
+            setTimeout(function () {
+                this.isSearching = false;
                 this.filteredAssets = this.Assets.filter(assetArchived =>
-                assetArchived.asset_id.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.asset_tag.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.serialno.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.category.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.model.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.status.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.purchase_date.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.supplier.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.asset_location.toLowerCase().includes(search.toLowerCase()) ||
-                assetArchived.notes.toLowerCase().includes(search.toLowerCase())
+                    assetArchived.asset_id.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.asset_tag.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.serialno.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.category.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.model.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.status.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.purchase_date.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.supplier.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.asset_location.toLowerCase().includes(search.toLowerCase()) ||
+                    assetArchived.notes.toLowerCase().includes(search.toLowerCase())
                 );
-			}.bind(this),1000);
+            }.bind(this), 1000);
         }, 2000),
         highlightMatches(text) {
             const matchExists = text.toLowerCase().includes(this.search.toLowerCase());
@@ -237,50 +327,64 @@ export default {
             return text.replace(re, matchedText => `<b style="background-color: yellow;">${matchedText}</b>`);
         }
     },
-    /**
     computed: {
-        filteredAssets() {
-            return this.Assets.filter((asset) => {
-                return asset.asset_id.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.asset_tag.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.serialno.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.category.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.model.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.status.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.purchase_date.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.supplier.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.asset_location.toLowerCase().includes(this.search.toLowerCase()) ||
-                    asset.notes.toLowerCase().includes(this.search.toLowerCase());      
+        numberOfPages() {
+            return Math.ceil(this.Assets.length / this.pages)
+        },
+        sortedAssets: function () {
+            return this.filteredAssets.filter((row, index) => {
+                let start = (this.currentPage - 1) * this.pageSize;
+                let end = this.currentPage * this.pageSize;
+                if (index >= start && index < end) return true;
+            }).sort((a, b) => {
+                let modifier = 1;
+                if (this.currentSortDir === 'desc') modifier = -1;
+                if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
             });
         }
     }
-    */
 };
 </script>
 
 <style scoped>
-label, input, textarea, select{
+label,
+input,
+textarea,
+select {
     font-size: 11px;
 }
-input{
-    height:23px;
-    width:100%;
+
+input {
+    height: 23px;
+    width: 100%;
 }
-.form-group{
+
+th.pointer {
+    cursor: pointer;
+}
+
+.form-group {
     width: 150px;
     margin-top: -10px;
 }
-.btn-primary, .btn-secondary, .btn-warning{
-    height:25px;
+
+.btn-primary,
+.btn-secondary,
+.btn-warning {
+    height: 25px;
     padding: 2px 7px 2px 7px;
 }
-.modal-header{
-    height:30px;
+
+.modal-header {
+    height: 30px;
     padding-top: 5px;
     padding-bottom: 5px;
 }
-.close{
-    height:20px;
+
+.close {
+    height: 20px;
     padding-top: 0;
     margin-top: 0px;
     padding-left: 0;
@@ -289,6 +393,40 @@ input{
     text-decoration: none;
 }
 
+.pagination-buttons {
+    height: fit-content;
+    margin-bottom: -10px;
+    padding-left: 15px;
+    margin-top: 5px;
+}
 
+.page-link-lr {
+    height: 20px;
+    padding-top: 0;
+}
 
+.page-link-mid {
+    height: 20px;
+    padding-top: 2px;
+    font-size: 11px;
+    margin-right: -3px;
+    margin-left: -3px;
+}
+
+.rows-per-page-select {
+    height: 20px !important;
+    padding-left: 5px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.rows-per-page-label {
+    font-size: 11px;
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+table {
+    margin-top: -15px;
+}
 </style>

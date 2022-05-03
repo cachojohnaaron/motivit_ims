@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 	}
 	exit(0);
 }
+
 $res = array('error' => false);
 $action='';
 
@@ -26,17 +27,25 @@ if (isset($_GET['action'])){
     $action=$_GET['action'];
 }
 
+function clean($value){
+    $value = trim($value);
+    $value = stripsslashes($value);
+    $value = strip_tags($value);
+
+    return $value;
+}
+
 if($action=='addlicense'){
-    $softName=$_POST['softName'];
-    $softCategory=$_POST['softCategory'];
-    $softKey=$_POST['softKey'];
-    $softToName=$_POST['softToName'];
-    $softToEmail=$_POST['softToEmail'];
-    $softManufacturer=$_POST['softManufacturer'];
-    $softTotal=$_POST['softTotal'];
-    $softAvailable=$_POST['softAvailable'];
-    $softDate=$_POST['softDate'];
-    $softExpired=$_POST['softExpired'];
+    $softName=clean($_POST['softName']);
+    $softCategory=clean($_POST['softCategory']);
+    $softKey=clean($_POST['softKey']);
+    $softToName=clean($_POST['softToName']);
+    $softToEmail=clean($_POST['softToEmail']);
+    $softManufacturer=clean($_POST['softManufacturer']);
+    $softTotal=clean($_POST['softTotal']);
+    $softAvailable=clean($_POST['softAvailable']);
+    $softDate=clean($_POST['softDate']);
+    $softExpired=clean($_POST['softExpired']);
 
     $testquery = "SELECT * FROM `license` WHERE `softName` = '$softName' AND `visibility`= 'true'";
     $testresult = $conn->query($testquery);
@@ -57,7 +66,7 @@ if($action=='addlicense'){
     }
 }
 if($action=='addcategory'){
-    $softCategory=$_POST['softCategory'];
+    $softCategory=clean($_POST['softCategory']);
 
     $testquery = "SELECT * FROM `license_category` WHERE `category`  = '$softCategory'";
     $testresult = $conn->query($testquery);
@@ -90,6 +99,22 @@ if($action=='getemployee'){
         $res['license_Employee']=$licenseEmployee;
     } else {
         $res['error']=false;
+        $res['message']="No Data Found!";
+    }
+}
+if($action=='getdeptemployee'){
+    $sql="SELECT * FROM `employee` WHERE visibility = 'true'";
+    $result=$conn->query($sql);
+    $num=mysqli_num_rows($result);
+    $deptEmployee=array();
+    if($num >0){
+        while($row=$result->fetch_assoc()){
+            array_push($deptEmployee,$row);
+        }
+        $res['error']=false;
+        $res['dept_Employee']=$deptEmployee;
+    } else {
+        $res['error']=true;
         $res['message']="No Data Found!";
     }
 }
@@ -126,7 +151,7 @@ if($action=='getlicenseloc'){
     }
 }
 if($action=='addlocation'){
-    $softLocation=$_POST['softLocation'];
+    $softLocation=clean($_POST['softLocation']);
 
     $testquery = "SELECT * FROM `license_location` WHERE `location`  = '$softLocation'";
     $testresult = $conn->query($testquery);
@@ -147,7 +172,7 @@ if($action=='addlocation'){
     }
 }
 if($action=='getlicenseinfo'){
-    $sql="SELECT * FROM `license` WHERE visibility = 'true'";
+    $sql="SELECT * FROM `license` WHERE visibility = 'true' ORDER BY license.softID DESC";
     $result=$conn->query($sql);
     $num=mysqli_num_rows($result);
     $licenseData=array();
@@ -162,34 +187,12 @@ if($action=='getlicenseinfo'){
         $res['message']="No Data Found!";
     }
 }
-
-if($action=='getassignlicense'){
-    $sql="SELECT * FROM `assign_license` WHERE visibility = 'true' AND `status`='Deployed'";
-    $result=$conn->query($sql);
-    $num=mysqli_num_rows($result);
-    $licenseAssign=array();
-    if($num >0){
-        while($row=$result->fetch_assoc()){
-            array_push($licenseAssign,$row);
-        }
-        $res['error']=false;
-        $res['license_Assign']=$licenseAssign;
-    } else {
-        $res['error']=false;
-        $res['message']="No Data Found!";
-    }
-}
 //Query for CheckOut/Deploy License
 if($action=='addassign'){
-    $softID=$_POST['softID'];
-    $emp_id = $_POST['emp_id'];
-    $loc_id=$_POST['loc_id'];
-    $al_date=$_POST['al_date'];
-    // $softName=$_POST['softName'];
-    // $softCategory=$_POST['softCategory'];
-    // $softKey=$_POST['softKey'];
-    // $al_emp=$_POST['al_emp'];
-    // $al_date=$_POST['al_date'];
+    $softID=clean($_POST['softID']);
+    $emp_id = clean($_POST['emp_id']);
+    $loc_id=clean($_POST['loc_id']);
+    $al_date=clean($_POST['al_date']);
  
     $testquery = "SELECT * FROM `deploy_license` WHERE `softID` = '$softID' AND `emp_id` = '$emp_id'";
     $testresult = $conn->query($testquery);
@@ -198,7 +201,7 @@ if($action=='addassign'){
         $res['error']=true;
         $res['message'] = "The license had been previously assigned to this employee!";
     } else {
-        $sql="INSERT INTO `deploy_license`(`assign_license_id`, `softID`, `emp_id`, `loc_id`, `al_date`, `visibility`, `status`) VALUES(NULL,'$softID','$emp_id','$loc_id','$al_date','true','Deployed');";
+        $sql="INSERT INTO `deploy_license`(`assign_license_id`, `softID`, `emp_id`, `transaction_type`, `loc_id`, `al_date`, `visibility`, `status`) VALUES(NULL,'$softID','$emp_id','checkout','$loc_id','$al_date','true','Deployed');";
         $updatequery = "UPDATE `license` SET softAvailable = softAvailable-1 WHERE softAvailable>0 AND `softID` = $softID";
         $result=$conn->query($sql);
         if($result===true){
@@ -243,7 +246,7 @@ if($action=='checkin'){
     $emp_id = $_POST['emp_id'];
     $loc_id=$_POST['loc_id'];
 
-    $sql="UPDATE `deploy_license` SET `status`= 'Undeployed' WHERE `assign_license_id`='$assign_license_id'";
+    $sql="UPDATE `deploy_license` SET `status`= 'Undeployed',`transaction_type`='checkin' WHERE `assign_license_id`='$assign_license_id'";
     $returnquery = "UPDATE `license` SET softAvailable = softAvailable+1 WHERE softAvailable>0 AND `softID` = '$softID'";
     // `status` = 'Ready To Deploy'
     $result=$conn->query($sql);
@@ -259,11 +262,11 @@ if($action=='checkin'){
     }
 } //End Query
 if($action=='updatedeployed'){
-    $assign_license_id=$_POST[`assign_license_id`];
-    $softID=$_POST['softID'];
-    $emp_id = $_POST['emp_id'];
-    $loc_id=$_POST['loc_id'];
-    $al_date=$_POST['al_date'];
+    $assign_license_id=clean($_POST[`assign_license_id`]);
+    $softID=clean($_POST['softID']);
+    $emp_id = clean($_POST['emp_id']);
+    $loc_id=clean($_POST['loc_id']);
+    $al_date=clean($_POST['al_date']);
 
     $sql = "UPDATE `deploy_license` SET `emp_id`='$emp_id',`loc_id`='$loc_id',`al_date`='$al_date' WHERE `softID`='$softID' AND assign_license_id='$assign_license_id'" ;
     $result=$conn->query($sql);
@@ -276,17 +279,17 @@ if($action=='updatedeployed'){
     }
 }
 if($action=='updatelicense'){
-    $softID=$_POST['softID'];
-    $softName=$_POST['softName'];
-    $softCategory=$_POST['softCategory'];
-    $softKey=$_POST['softKey'];
-    $softToName=$_POST['softToName'];
-    $softToEmail=$_POST['softToEmail'];
-    $softManufacturer=$_POST['softManufacturer'];
-    $softTotal=$_POST['softTotal'];
-    $softAvailable=$_POST['softAvailable'];
-    $softDate=$_POST['softDate'];
-    $softExpired=$_POST['softExpired'];
+    $softID=clean($_POST['softID']);
+    $softName=clean($_POST['softName']);
+    $softCategory=clean($_POST['softCategory']);
+    $softKey=clean($_POST['softKey']);
+    $softToName=clean($_POST['softToName']);
+    $softToEmail=clean($_POST['softToEmail']);
+    $softManufacturer=clean($_POST['softManufacturer']);
+    $softTotal=clean($_POST['softTotal']);
+    $softAvailable=clean($_POST['softAvailable']);
+    $softDate=clean($_POST['softDate']);
+    $softExpired=clean($_POST['softExpired']);
 
     $sql = "UPDATE license SET softName='$softName',softCategory='$softCategory',softKey='$softKey',softToName='$softToName',softToEmail='$softToEmail',softManufacturer='$softManufacturer',softTotal='$softTotal',softAvailable='$softAvailable',softDate='$softDate',softExpired='$softExpired' WHERE softID='$softID'" ;
     //update assign_license(license ID, license Name, license category, license key) AND ((edit)location) AND ((edit)employee)

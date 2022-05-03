@@ -27,7 +27,7 @@
                                 <div class="card-title">Total Assets</div>
                                 <span class="card-amount">{{Assets.length}}</span>
                             </div>
-                            <v-icon style="color:#6bc4ff48; font-size:80px; margin-left:20px; margin-bottom:-20px; ">mdi-text-box-multiple</v-icon>
+                            <v-icon class="totals-icon-db" >mdi-text-box-multiple</v-icon>
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -38,7 +38,7 @@
                                 <div class="card-title">Total Licenses</div>
                                 <span class="card-amount">{{Licenses.length}}</span>
                             </div>
-                            <v-icon style="color:#6bc4ff48; font-size:80px; margin-left:20px; margin-bottom:-20px; ">mdi-content-save</v-icon>
+                            <v-icon class="totals-icon-db">mdi-content-save</v-icon>
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -49,7 +49,7 @@
                                 <div class="card-title">Total Accessories</div>
                                 <span class="card-amount">{{Accessories.length}}</span>
                             </div>
-                            <v-icon style="color:#6bc4ff48; font-size:80px; margin-left:20px; margin-bottom:-20px; ">mdi-keyboard</v-icon>
+                            <v-icon class="totals-icon-db">mdi-keyboard</v-icon>
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -60,7 +60,7 @@
                                 <div class="card-title">Total Employees</div>
                                 <span class="card-amount">{{Users.length}}</span>
                             </div>
-                            <v-icon style="color:#6bc4ff48; font-size:80px; margin-left:20px; margin-bottom:-20px; ">mdi-account-group-outline</v-icon>
+                            <v-icon class="totals-icon-db">mdi-account-group-outline</v-icon>
                         </v-card-text>
                     </v-card>
                 </v-col>
@@ -78,23 +78,24 @@
         -->
         <!-- Table for Recent Return and Deployment Transactions -->
     
-        <v-col>
-            <v-card style="padding-top:10px;">
-                <span style="margin-left: 15px; color:#0D1B38;"><strong> Recent Deployment and Returns </strong></span>
-                <v-tabs v-model="tab" class="d-flex flex-row-reverse" style="margin-top:-30px;">
+        <v-col >
+            <v-card class="recents-card h-full w-auto">
+                <span class="recents-header"><strong> Recent Deployment and Returns </strong></span>
+                <v-tabs v-model="tab" class="d-flex flex-row-reverse recents-slider" >
                     <v-tabs-slider color="#0D1B38" ></v-tabs-slider>
-                    <v-tab height="50px" href="#assets" style="font-size:11px; text-decoration:none;">Assets</v-tab>
-                    <v-tab href="#licenses" style="font-size:11px; text-decoration:none;">Licenses</v-tab>
-                    <v-tab href="#accessories" style="font-size:11px; text-decoration:none;">Accessories</v-tab>
+                    <v-tab href="#assets" class="recents-tabs">Assets</v-tab>
+                    <v-tab href="#licenses" class="recents-tabs" >Licenses</v-tab>
+                    <v-tab href="#accessories" class="recents-tabs" >Accessories</v-tab>
                 </v-tabs>
                 <v-tabs-items v-model="tab">
-                    <v-tab-item :key="1" value="assets">
-                        <v-card flat>
-                            <v-card-text>
+                    <v-tab-item :key="1" value="assets" class="table-cont">
+                        
+                            
                                 <!-- Assets Table -->
-                                    <div class="table-responsive">
-                                        <table id="assets" class="table-sm table-striped table-hover" ref="assets">
+                                    
+                                        <table id="assets" class="table-sm table-striped table-hover table-assets" ref="assets">
                                         <thead class="">
+                                            <br>
                                             <tr>
                                                 <th>Employee</th>
                                                 <th>Transaction Type</th>
@@ -116,58 +117,50 @@
                                             </tr>
                                         </tbody>
                                         </table>
-                                    </div>
+                                    
                                 <!-- End of Assets Table -->
-                            </v-card-text>
-                        </v-card>
+                            
+                       
                     </v-tab-item>
-                    <v-tab-item :key="2" value="licenses">
-                        <v-card flat>
-                            <v-card-text>
+                    <v-tab-item :key="2" value="licenses" class="table-cont">
+                        
                                 <!-- License Table -->
-                                    <div class="table-responsive">
+                                    
                                         <table id="license" class="table-sm table-striped table-hover" ref="license">
                                         <thead>
+                                            <br>
                                             <tr>
-                                                <th>License ID<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>License Name<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Category<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Product Key<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Licensed To Name<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Licensed To Email<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Manufacturer<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Date of Purchase<span v-html="sortArrow" style="cursor:pointer;"></span></th>
-                                                <th>Expired On<span v-html="sortArrow" style="cursor:pointer;"></span></th>
+                                                <th>Employee</th>
+                                                <th>Transaction Type</th>
+                                                <th>License Name</th>
+                                                <th>Category</th>
+                                                <th>Product Key</th>
+                                                <th>Location</th>
+                                                <th>Transaction Date</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <!-- <tr v-for="data in filteredLicenses" :key="data">
-                                                <td>{{data.softID}}</td>
+                                        <tbody onload="makeTableScroll();">
+                                            <tr v-for="data in LicenseTransactions" :key="data">
+                                                <td>{{data.name}}</td>
+                                                <td>{{data.transaction_type}}</td>
                                                 <td>{{data.softName}}</td>
                                                 <td>{{data.softCategory}}</td>
                                                 <td>{{data.softKey}}</td>
-                                                <td>{{data.softToName}}</td>
-                                                <td>{{data.softToEmail}}</td>
-                                                <td>{{data.softManufacturer}}</td>
-                                                <td>{{data.softTotal}}</td>
-                                                <td>{{data.softAvailable}}</td>
-                                                <td>{{data.softDate}}</td>
-                                                <td>{{data.softExpired}}</td>
-                                            </tr> -->
+                                                <td>{{data.location}}</td>
+                                                <td>{{data.al_date}}</td>
+                                            </tr>
                                         </tbody>
                                         </table>
-                                    </div>
+                                    
                                 <!-- End of License Table -->
-                            </v-card-text>
-                        </v-card>
+                            
                     </v-tab-item>
-                    <v-tab-item :key="3" value="accessories">
-                        <v-card flat>
-                            <v-card-text>
+                    <v-tab-item :key="3" value="accessories" class="table-cont">
+                        
                                 <!-- Accessories Table -->
-                                    <div class="table-responsive">
                                         <table id="accessories" class="table-sm table-striped table-hover" ref="accessories">
                                         <thead class="">
+                                            <br>
                                             <tr>
                                                 <th>Employee</th>
                                                 <th>Transaction Type</th>
@@ -188,10 +181,9 @@
                                             </tr>
                                         </tbody>
                                         </table>
-                                    </div>
+                                    
                                 <!-- End of Accessories Table -->
-                            </v-card-text>
-                        </v-card>
+                            
                     </v-tab-item>
                 </v-tabs-items>
         </v-card>
@@ -355,7 +347,7 @@
 
                             <div class="form-group">
                                 <label for="email"><b>Email<span style="color: red;"> *</span></b></label>
-                                <input type="email" name="email" class="form-control" id="email" placeholder="" v-model.lazy="UsersData.email" />
+                                <input type="text" name="email" class="form-control" id="email" placeholder="" v-model.lazy="UsersData.email" />
                             </div>
 
                             <div class="form-group">
@@ -531,6 +523,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import axios from "axios";
@@ -541,7 +534,6 @@ export default {
         
         return {
             tab: "assets",
-            drawer: null,
             btnAdd: true,
             btnNew: true,
             alertSuccess: null,
@@ -592,28 +584,26 @@ export default {
 
             //Table recent transactions
             AssetsTransactions: [],
+            LicenseTransactions: [],
             AccessoriesTransactions: [],
         }
     },
     components: { Topbar, Sidebar },
-
     created() {
+        if(this.$session.exists('login-session')) {
+            var i = this.$session.get('login-session');
+            var j = this.$session.get('login-session-enc');
 
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
+            bcrypt.compare(i, j, (err, res) => {
+                if (res == 0) 
+                this.$router.push({ path: '/' })
+            })
+        }  
+        else {
             this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
-    }
-
-
+        }
         this.getAllAssetTransactions();
+        this.getAllLicenseTransactions();
         this.getAllAccessoryTransactions();
 
         this.getAllEmployee();
@@ -629,6 +619,7 @@ export default {
         this.getCategory();
     },
     methods: {
+       
         onButtonClick(item) {
             console.log('click on ' + item.no)
         },
@@ -806,9 +797,15 @@ export default {
             }
         },
         AddEmployee() {
+            
+            var mailformat = /[^\s@]+@[^\s@]+\.[^\s@]+/;
         if (!this.UsersData.name || !this.UsersData.department || !this.UsersData.email ) {
             this.alertError = true;
         }
+      else if (!this.UsersData.email.match(mailformat))
+            {
+                alert("Please input a valid email address!");
+            }
         else {
             let data = new FormData();
             data.append("name", this.UsersData.name);
@@ -983,7 +980,7 @@ export default {
         getAllAssetTransactions() {
             axios
                 .get(
-                    "http://localhost/motivit/motivit_ims/src/Api/reports-api.php?action=getAllAssetTransactions"
+                    "http://localhost/motivit/motivit_ims/src/Api/reports-api.php?action=getAllAssetTransactions_dash"
                 )
                 .then((res) => {
                     console.log(res.data.user_Data);
@@ -993,10 +990,23 @@ export default {
                     console.log(err);
                 });
         },
+        getAllLicenseTransactions() {
+            axios
+                .get(
+                    "http://localhost/motivit/motivit_ims/src/Api/reports-api.php?action=getAllLicenseTransactions_dash"
+                )
+                .then((res) => {
+                    console.log(res.data.license_Data);
+                    this.LicenseTransactions = res.data.license_Data;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        },
         getAllAccessoryTransactions() {
             axios
                 .get(
-                "http://localhost/motivit/motivit_ims/src/Api/reports-api.php?action=getAllAccessoryTransactions"
+                "http://localhost/motivit/motivit_ims/src/Api/reports-api.php?action=getAllAccessoryTransactions_dash"
                 )
                 .then((res) => {
                 console.log(res.data.user_Data);
@@ -1013,6 +1023,10 @@ export default {
 </script>
 
 <style scoped>
+.table-responsive{
+    height:100%;
+    overflow-y: auto
+}
 .overlap-icon {
     position: absolute;
     top: -33px;
@@ -1125,6 +1139,29 @@ input{
 }
 hr{
     margin-top: -10px;
+}
+
+.totals-icon-db{
+    color:#6bc4ff48; font-size:80px; margin-left:20px; margin-bottom:-20px;
+}
+.recents-card{
+    padding-top:10px; 
+    max-height:fit-content;
+}
+.recents-tabs{
+    font-size:11px; text-decoration:none;
+}
+.recents-header{
+    margin-left: 15px; color:#0D1B38;
+}
+.recents-slider{
+    margin-top:-30px;
+}
+.table-cont{
+    height:325px;
+    overflow-y: scroll;
+    padding-left: 15px;
+    margin-top:10px;
 }
 
 

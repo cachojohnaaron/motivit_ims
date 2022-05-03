@@ -26,13 +26,18 @@ if (isset($_GET['action'])){
     $action=$_GET['action'];
 }
 
+function clean($value){
+    $value = trim($value);
+    $value = stripsslashes($value);
+    $value = strip_tags($value);
+
+    return $value;
+}
+
 if($action=="login"){
 
-    $_username=$_POST['username'];
-    $_password=$_POST['password'];
-
-	$username = filter_var($_username, FILTER_SANITIZE_STRING);
-	$password = filter_var($_password, FILTER_SANITIZE_STRING);
+    $username=$_POST['username'];
+    $password=$_POST['password'];
 
 	$sql = "SELECT id from login where username = '$username'";
 	$result=$conn->query($sql);
@@ -120,9 +125,7 @@ if($action=='getcurrentadmin'){
 if($action=='updateusername'){
 
 	$id = $_POST['id'];
-    $_new_username = $_POST['new_username'];
-
-	$new_username = filter_var($_new_username, FILTER_SANITIZE_STRING);
+    $new_username = $_POST['new_username'];
 
     $sql = "UPDATE `login` SET `username` = '$new_username' WHERE `login`.`id` = $id";
     $result=$conn->query($sql);
@@ -170,10 +173,10 @@ if($action=='disableAdmin'){
 
 if($action=='updateadmininfo'){
 
-	$id = $_POST['id'];
-	$fname = $_POST['fname'];
-	$lname = $_POST['lname'];
-    $username = $_POST['username'];
+	$id = clean($_POST['id']);
+	$fname = clean($_POST['fname']);
+	$lname = clean($_POST['lname']);
+    $username = clean($_POST['username']);
 
     $sql = "UPDATE `login` SET `username` = '$username', `fname` = '$fname', `lname` = '$lname' WHERE `login`.`id` = $id";
     $result=$conn->query($sql);
@@ -188,10 +191,10 @@ if($action=='updateadmininfo'){
 
 if($action=='addadmin'){
 
-	$fname = $_POST['fname'];
-	$lname = $_POST['lname'];
-	$username = $_POST['username'];
-	$password = $_POST['password'];
+	$fname = clean($_POST['fname']);
+	$lname = clean($_POST['lname']);
+	$username = clean($_POST['username']);
+	$password = clean($_POST['password']);
 
 	$hash = password_hash($password, PASSWORD_DEFAULT);
 

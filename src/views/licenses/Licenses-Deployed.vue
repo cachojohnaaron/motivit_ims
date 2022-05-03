@@ -4,37 +4,72 @@
     <Topbar />
     <!-- Header Buttons -->
     
-        <h6 class="page-header"><strong>Deployed Licenses</strong></h6>
-        <v-row>
+      <h6 class="page-header"><strong>Deployed Licenses</strong></h6>
+      <v-row>
       <div class="card-buttons d-flex justify-space-between">
         <span class="page-buttons">
-          <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/> &nbsp;
+          <span>
+             <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+                <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+                
+          </span> &nbsp;
+          <span class="pt-3" v-if="isSearching">
+            <v-chip class="blue lighten-5" style="height:25px;">
+              <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
+              <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
+            </v-chip>
+          </span>
         </span>
         <span class="page-buttons">
-          <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Show Deleted</button>
+          <button type="button" class="btn btn-light btn-subheader-third" @click="goDeleted()">Archives</button>
+          <!--
           <button type="button" class="btn btn-light btn-subheader-third" @click="showExport()" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
+          -->
         </span>
       </div>
       </v-row>
 
     <v-row>
     <!--Table for All Deployed Licenses-->
-    <div id="tblUser" class="card" >
-      <div class="d-flex justify-content-end mb-3">
-        <!-- Search and Table Row -->
-        <label class="me-5 pt-3 ms-2">Rows per page:</label>
-        <div class="row align-items-center"> 
-          <div class="d-grid" style="size: 3vw">
-            <select class="custom-select form-control-sm" name="rows" id="rows" v-model.lazy="pageSize">
-              <option value="5" selected>5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
+    <div id="tblUser" class="card">
+      <div class="table-responsive-sm" >
+        <div class="d-flex justify-content-end">
+          <!-- Pagination and Rows -->
+          
+          <div class="row align-items-center pagination-buttons"> 
+            <label class="rows-per-page-label">Rows per page:</label>
+            <div class="d-grid" style="size: 3vw">
+              <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+              </select>
+            </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <div class="row pt-2">
+              <div class="col-auto ms-auto">
+                <p class="pe-5">
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm">
+                      <li class="page-item">
+                        <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                      <li class="page-item"><a class="page-link page-link-mid" >{{ page }}</a></li>
+                        <li class="page-item">
+                          <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>
+                        </li>
+                    </ul>
+                  </nav>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        
-      </div> 
-      <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
         <!-- Table List -->
         <table id="table" class="table-sm table-hover" ref="table" :data="data">
           <thead>
@@ -51,39 +86,26 @@
           </thead>
           <tbody>
             <tr v-for="data in filteredDeployed" :key="data">
-              <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
-              <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
-              <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
-              <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
-              <td v-html="highlightMatches(data.name)">{{data.name}}</td>
-              <td v-html="highlightMatches(data.location)">{{data.location}}</td>
-              <td v-html="highlightMatches(data.al_date)">{{data.al_date}}</td>
-              <td v-if="!isHidden">
-                <button class="btn-sm btn-action" @click="checkIn(data)" modal-no-backdrop data-toggle="modal" data-target="#rtn-license" data-backdrop="static" data-keyboard="false">
-                  <v-icon color="warning" title="Return License" style="font-size:16px;">mdi-refresh</v-icon>
-                </button>
-                <button class="btn-sm btn-action" @click="removeDeployed(data)" modal-no-backdrop data-toggle="modal" data-target="#rtn-license" data-backdrop="static" data-keyboard="false">
-                  <v-icon color="red" title="Remove License" style="font-size:16px;">mdi-delete</v-icon>
-                </button>
-              </td>
+              <tr v-for="data in sortedLicenses" :key="data">
+                <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
+                <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
+                <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
+                <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
+                <td v-html="highlightMatches(data.name)">{{data.name}}</td>
+                <td v-html="highlightMatches(data.location)">{{data.location}}</td>
+                <td v-html="highlightMatches(data.al_date)">{{data.al_date}}</td>
+                <td v-if="!isHidden">
+                  <button class="btn-sm btn-action" @click="showModalReturn(data)" modal-no-backdrop data-toggle="modal" data-target="#rtn-license" data-backdrop="static" data-keyboard="false">
+                    <v-icon color="warning" title="Return License" style="font-size:16px;">mdi-refresh</v-icon>
+                  </button>
+                  <button class="btn-sm btn-action" @click="showModalDelete(data)" modal-no-backdrop data-toggle="modal" data-target="#delete-license">
+                    <v-icon color="red" title="Remove License" style="font-size:16px;">mdi-delete</v-icon>
+                  </button>
+                </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <!-- Pagination -->
-        <div class="row pt-2">
-            <div class="col-auto ms-auto">
-                <p class="pe-5">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <span class="me-5 pt-3">Showing page <b>{{ page }}</b> of <b>{{ pages }}</b> pages</span>
-                            <li class="page-item"><a class="page-link" @click="prevPage"><v-icon color="gray">mdi-skip-previous</v-icon></a></li>
-                            <li class="page-item"><a class="page-link" @click="nextPage"><v-icon color="gray">mdi-skip-next</v-icon></a></li>
-                        </ul>
-                    </nav>
-                </p>
-            </div>
-        </div>
     </div>
     </v-row>
 
@@ -134,6 +156,135 @@
         </div>
     </div>
 
+  <!--Modal For Return License Modal-->
+    <div class="modal fade modal-update-asset" id="rtn-license" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog rtn-asset" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel">Return License</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="" method="POST">
+
+                        <div style="display:none">
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="assign_license_id"><b>License ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="assign_license-_id" class="form-control mb-3" id="assign_license_id" placeholder="" readonly v-model.lazy="License_Data.assign_license_id" />
+                                </div>
+                            </div>
+
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="softID"><b>Employee ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="softID" class="form-control mb-3" id="softID" placeholder="" readonly v-model.lazy="License_Data.softID" />
+                                </div>
+                            </div> 
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="al_emp"><b>Employee ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="al_emp" class="form-control mb-3" id="al_emp" placeholder="" readonly v-model.lazy="License_Data.al_emp" />
+                                </div>
+                            </div> 
+                            <div class="row align-items-center"> 
+                                <div class="col-auto">
+                                <label for="locc_id"><b>Employee ID</b></label>
+                                </div>
+                                <div class="col-auto">
+                                <input type="text" name="loc_id" class="form-control mb-3" id="loc_id" placeholder="" readonly v-model.lazy="License_Data.loc_id" />
+                                </div>
+                            </div> 
+                        </div>
+
+                        <div style="text-align: center;">
+                            <h6 class="rtn-modal-title">Are you sure you want to return this license?</h6>
+                        </div>
+                       
+
+                        <hr>
+
+                        <div class="modal-bottom-rtn">
+                            <b-button class="mb-3 btn btn-secondary" block @click="cancelModal()" data-dismiss="modal">Cancel</b-button>
+                            <b-button class="ms-2 mb-3 btn btn-success" block @click.prevent="checkIn()">Yes</b-button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Modal For Delete License-->
+    <div class="modal fade modal-update-asset" id="delete-license" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog rtn-asset" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="exampleModalLabel">Delete License</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div v-if="alertSuccess" class="alert alert-success" role="alert">
+                        <v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;License record moved to archives.
+                    </div>
+                    <form action="" method="POST">
+
+                        <div style="display:none">
+                          <div class="row align-items-center"> 
+                              <div class="col-auto">
+                              <label for="assign_license_id"><b>License ID</b></label>
+                              </div>
+                              <div class="col-auto">
+                              <input type="text" name="assign_license_id" class="form-control mb-3" id="assign_license_id" placeholder="" readonly v-model.lazy="License_Data.assign_license_id" />
+                              </div>
+                          </div>
+                          <div class="row align-items-center"> 
+                              <div class="col-auto">
+                              <label for="softID"><b>SoftID</b></label>
+                              </div>
+                              <div class="col-auto">
+                              <input type="text" name="softID" class="form-control mb-3" id="softID" placeholder="" readonly v-model.lazy="License_Data.softID" />
+                              </div>
+                          </div>
+                          <div class="row align-items-center"> 
+                              <div class="col-auto">
+                              <label for="al_emp"><b>SoftID</b></label>
+                              </div>
+                              <div class="col-auto">
+                              <input type="text" name="al_emp" class="form-control mb-3" id="al_emp" placeholder="" readonly v-model.lazy="License_Data.al_emp" />
+                              </div>
+                          </div>
+
+     
+                        </div>
+
+                        <div style="text-align: center;">
+                            <h6 class="rtn-modal-title">Are you sure you want to delete this license?</h6>
+                        </div>
+                       
+
+                        <hr>
+
+                        <div class="modal-bottom-rtn">
+                            <b-button class="mb-3 btn btn-secondary" data-dismiss="modal">Cancel</b-button>
+                            <b-button class="ms-2 mb-3 btn btn-confirm" style="background: rgb(163, 4, 4); color: white;" block @click.prevent="removeDeployed()">Confirm</b-button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </template>
 
@@ -142,10 +293,10 @@
 import Sidebar from "../../components/Sidebar";
 import Topbar from "../../components/Topbar";
 import axios from "axios";
+import { debounce } from "lodash";
 import * as XLSX from 'xlsx'
 import jsPDF from "jspdf"
 import 'jspdf-autotable'
-import bcrypt from 'bcryptjs';
 export default {
   name: "license",
   data() {
@@ -155,6 +306,7 @@ export default {
       rows: 100,
       //Alert
       successAlert: false,
+      alertSuccess:false,
       warningAlert: false,
       dismissSecs: 5,
       upddeployed: 0,
@@ -164,11 +316,13 @@ export default {
       perPage: 10,
       currentPage: 1,
       pageSize:5,
-      search: '',
-      pages:null,
+      search: "",
+      isSearching: false,
+      pages:5,
       /*Table Sorting*/
-      currentSort:'softName',
-      currentSortDir:'asc',
+      currentSort:'softID',
+      currentSortDir:'desc',
+      ascSort: true,
       //Buttons
       btnExport: true,
       btnShow: true,
@@ -198,28 +352,23 @@ export default {
       Licenses: [],
       Location: [],
       Employee: [],
+      filteredLicenses: [],
     };
   },
   components: { Topbar, Sidebar },
   created(){
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
-    }
-    
-
     this.getAssign();
     this.getLicenses();
     this.getLocation();
     this.getEmployee();
+  },
+  watch: {
+    search: {
+      handler(search) {
+        this.setLicensesDebounced(search)
+      },
+      immediate: true,
+    }
   },
   methods:{
     goDeleted() {
@@ -236,24 +385,47 @@ export default {
       this.LicenseData = assign_license_id;
       this.$bvModal.show('upd-deployed')
     },
+    showModalDelete(assign_license_id) {
+        this.License_Data = assign_license_id;
+    },
+    showModalReturn(assign_license_id) {
+        this.License_Data = assign_license_id;
+        this.$bvModal.show('return-license')
+    },
     showExport(){
       this.$bvModal.show('exp-options')
     },
+    /*Table Pagination*/
     nextPage:function() {
-            if((this.currentPage*this.pageSize) < this.Licenses.length) this.currentPage++;
-            this.page=this.currentPage;
+      if((this.currentPage*this.pageSize) < this.filteredLicenses.length) this.currentPage++;
+      this.page=this.currentPage;
     },
     prevPage:function() {
-            if(this.currentPage > 1) this.currentPage--;
-            this.page=this.currentPage;
+      if(this.currentPage > 1) this.currentPage--;
+      this.page=this.currentPage;
     },
+    /*Table Sorting*/
     sort:function(s) {
-            //if s == current sort, reverse
-            if(s === this.currentSort) {
-            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
-            }
-            this.currentSort = s;
+      //if s == current sort, reverse
+      if(s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
+      } this.currentSort = s;
     },
+    setLicensesDebounced: debounce(function(search) {
+      this.isSearching = true;
+      setTimeout(function(){
+        this.isSearching = false;
+        this.filteredLicenses = this.Assign.filter(data =>
+        data.softName.toLowerCase().includes(search.toLowerCase()) ||
+        data.softCategory.toLowerCase().includes(search.toLowerCase()) ||
+        data.softKey.toLowerCase().includes(search.toLowerCase()) ||
+        data.lname.toLowerCase().includes(search.toLowerCase()) ||
+        data.fname.toLowerCase().includes(search.toLowerCase()) ||
+        data.location.toLowerCase().includes(search.toLowerCase()) ||
+        data.al_date.toLowerCase().includes(search.toLowerCase()) 
+        );
+			}.bind(this),1000);
+    }, 2000),
     getAssign(){
       // axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getdeployedlicense').then((res) => {
         axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getdeployedlicense').then((res) => {
@@ -308,10 +480,10 @@ export default {
           console.log(err);
         })
     },
-    checkIn(assign_license_id){
-      if(confirm("Are you sure you want to return this item?")){
+    checkIn(){
+      
         let data = new FormData();
-        this.License_Data = assign_license_id;
+        //this.License_Data = assign_license_id;
         data.append("assign_license_id", this.License_Data.assign_license_id);
         data.append("softID",this.License_Data.softID);
         data.append("emp_id", this.LicenseData.al_emp);
@@ -321,15 +493,13 @@ export default {
           if(res.data.error) {
             console.log("Error", res.data);
           } else {
-            this.checkAlert = this.dismissSecs;
             this.getAssign();
             location.reload();  
           }
         }).catch((err) => {
           console.log(err);
         });
-      }
-    },
+      },
     checkInRecords(){
       axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getcheckinrecords').then((res) => {
           console.log(res.data.checkIn_Data);
@@ -339,10 +509,9 @@ export default {
       });
     },
     //Remove Item
-    removeDeployed(assign_license_id){
-      if(confirm("Are you sure you want to remove this item?")){
-        let data = new FormData();
-        this.License_Data = assign_license_id;
+    removeDeployed(){
+      let data = new FormData();
+        //this.License_Data = assign_license_id;
         data.append("assign_license_id", this.License_Data.assign_license_id);
         data.append("softID",this.License_Data.softID);
         data.append("emp_id", this.LicenseData.al_emp);
@@ -351,8 +520,10 @@ export default {
           if(res.data.error) {
             console.log("Error", res.data);
           } else {
-            this.warningAlert = true;
-            this.warning = this.dismissSecs
+            this.alertSuccess= true;
+            setTimeout(function () {
+                window.location.reload()
+            }, 1000);
             this.Reset();
             this.getAssign(); 
             location.reload();
@@ -360,7 +531,6 @@ export default {
         }).catch((err) => {
           console.log(err);
         });
-      } 
     },
     showDeleted(){
       axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getdeletedinfo').then((res) => {
@@ -436,19 +606,11 @@ export default {
     isDisabled: function(){
         return !this.al_Name || !this.al_Category ||!this.al_Key;
     },
-    filteredDeployed() {
-      return this.Assign.filter((data) => {
-        return data.softName.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.softCategory.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.softKey.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.lname.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.fname.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.location.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.al_date.toLowerCase().includes(this.search.toLowerCase());
-      }).filter((row, index) => {
-          let start = (this.currentPage-1)*this.pageSize;
-          let end = this.currentPage*this.pageSize;
-          if(index >= start && index < end) return true;
+    sortedLicenses: function() {
+      return this.filteredLicenses.filter((row, index) => {
+        let start = (this.currentPage-1)*this.pageSize;
+        let end = this.currentPage*this.pageSize;
+        if(index >= start && index < end) return true;
       }).sort((a,b) => {
           let modifier = 1;
           if(this.currentSortDir === 'desc') modifier = -1;
@@ -476,7 +638,7 @@ input{
     width: 150px;
     margin-top: -10px;
 }
-.btn-primary, .btn-secondary{
+.btn-primary, .btn-secondary, .btn-confirm, .btn-success{
     height:25px;
     padding: 2px 7px 2px 7px;
 }
@@ -494,5 +656,25 @@ input{
     margin-right: 2px;
     text-decoration: none;
 }
- 
+ .pagination-buttons{
+    height:fit-content; 
+    margin-bottom:-10px; 
+    padding-left:15px;
+    margin-top:5px;
+}
+.page-link-lr{
+    height:20px; padding-top:0;
+}
+.page-link-mid{
+    height:20px; padding-top:2px; font-size:11px; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px; padding-top:0; padding-bottom:0; 
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
+}
+table{
+    margin-top: -10px;
+}
 </style>

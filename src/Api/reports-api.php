@@ -58,6 +58,30 @@ if($action=='filterAsset'){
 	}	
 }
 
+if($action=='filterLicense'){
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
+
+	$sql="SELECT * FROM license
+		WHERE (softDate >= '$start_date' AND softDate <= '$end_date') 
+		AND visibility = 'true'
+		ORDER BY softID DESC";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
 if($action=='filterAssetByDeployDate'){
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
@@ -73,6 +97,59 @@ if($action=='filterAssetByDeployDate'){
 		AND assign_asset.transaction_status = 'deployed'
 		AND (assign_asset.transaction_date >= '$start_date' AND assign_asset.transaction_date <= '$end_date')
 		ORDER by assign_asset.assign_asset_id DESC";
+	//$sql="select * from asset";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
+if($action=='filterLicenseByDeployDate'){
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
+	 
+	$sql="SELECT * FROM deploy_license, employee, license, license_location 
+		WHERE (employee.emp_id = deploy_license.emp_id 
+		AND deploy_license.softID = license.softID
+		AND deploy_license.loc_id = license_location.id
+		AND deploy_license.visibility = = 'true'
+		AND deploy_license.status = 'Deployed'
+		AND (deploy_license.al_date >= '$start_date' AND deploy_license.al_date <= '$end_date')
+		ORDER by deploy_license.assign_license_id DESC";
+	//$sql="select * from asset";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
+if($action=='getAllAssetTransactions_dash'){
+
+	$sql="SELECT * FROM assign_asset, employee, asset 
+		WHERE (employee.emp_id = assign_asset.emp_id 
+		AND assign_asset.asset_id = asset.asset_id)
+		AND asset.visibility = 'true'
+		ORDER by assign_asset.assign_asset_id DESC LIMIT 0,10";
 	//$sql="select * from asset";
 	$result=$conn->query($sql);
 	$num=mysqli_num_rows($result);
@@ -180,6 +257,30 @@ if($action=='filterAccessoriesByDeployDate'){
 	}	
 }
 
+if($action=='getAllAccessoryTransactions_dash'){
+
+	$sql="SELECT * FROM assign_accessory, employee, accessory 
+		WHERE (employee.emp_id = assign_accessory.emp_id 
+		AND assign_accessory.acs_id = accessory.acs_id)
+		AND accessory.visibility = 'true'
+		ORDER by assign_accessory.acs_id DESC LIMIT 0,10";
+	//$sql="select * from asset";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
 if($action=='getAllAccessoryTransactions'){
 
 	$sql="SELECT * FROM assign_accessory, employee, accessory 
@@ -234,6 +335,53 @@ if($action=='filterAccessoryTransactions'){
         $res['message']="No Data Found!";
 	}	
 }
+
+if($action=='getAllLicenseTransactions'){
+
+	$sql="SELECT * FROM deploy_license, employee, license, license_location 
+	WHERE (employee.emp_id = deploy_license.emp_id 
+	AND deploy_license.softID = license.softID
+	AND deploy_license.loc_id = license_location.id)
+	ORDER by deploy_license.softID DESC";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$licenseData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($licenseData,$row);
+		}
+		$res['error']=false;
+        $res['license_Data']=$licenseData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
+if($action=='getAllLicenseTransactions_dash'){
+
+	$sql="SELECT * FROM deploy_license, employee, license, license_location 
+	WHERE (employee.emp_id = deploy_license.emp_id 
+	AND deploy_license.softID = license.softID
+	AND deploy_license.loc_id = license_location.id)
+	ORDER by deploy_license.softID DESC LIMIT 0,10";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$licenseData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($licenseData,$row);
+		}
+		$res['error']=false;
+        $res['license_Data']=$licenseData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
 
 
 $conn -> close();

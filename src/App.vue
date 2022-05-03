@@ -113,6 +113,7 @@ export default {
   width:100%; 
   margin-top:7px;
   box-shadow: 0 1px 8px 0 rgba(0,0,0,0.2);
+  width:100%; padding:5px;
 }
 .card-buttons{
   border-radius: 5px;
@@ -189,6 +190,16 @@ hr{
   display:inline-block;
   font-size: 12px;
   height: 24px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-right: none;
+}
+.search-icon{
+  background-color:#e5e7e7;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+  padding-left:2px;
+  padding-right:2px;
 }
 .btn-action{
     height:20px;
@@ -204,4 +215,9 @@ hr{
 .close:active{
   border-style: outset;
 }
+.close:focus, .btn-action:focus{
+   outline:0;
+}
+
+
 </style>

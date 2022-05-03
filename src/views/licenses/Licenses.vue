@@ -3,16 +3,16 @@
     <Sidebar />
     <Topbar />
     <!-- Header Buttons -->
-    
+     
     <h6 class="page-header"><strong>Licenses </strong></h6>
     <v-row>
         <div class="card-buttons d-flex justify-space-between">
             <span class="page-buttons">
-                <!--
-                <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." single-line/> &nbsp;
-                -->
-                <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." append-icon="mdi-magnify"/> &nbsp;
-                <span class="me-2 pt-3" v-if="isSearching">
+                <span>
+                    <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+                    <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+               </span> &nbsp;
+                <span class="pt-3" v-if="isSearching">
                     <v-chip class="blue lighten-5" style="height:25px;">
                         <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
                         <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
@@ -29,23 +29,47 @@
 
     <v-row>
     <!--Table for All Added Licenses-->
-    <div id="tblUser" class="card">
-        <div class="d-flex justify-content-end mb-3">
-            <!-- Search and Table Row -->
-            <label class="me-5 pt-3 ms-2" style="font-size:11px;">Rows per page:</label>
-            <div class="row align-items-center"> 
-                <div class="d-grid" >
-                    <select class="custom-select form-control-sm" name="rows" id="rows" v-model.lazy="pageSize">
-                        <option value="5" selected>5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                    </select>
+    <div id="tblUser" class="card" >
+        <div class="table-responsive-sm">
+            <div class="d-flex justify-content-end">
+                <!-- Pagination and Rows -->
+                
+                <div class="row align-items-center pagination-buttons"> 
+                    <label class="rows-per-page-label">Rows per page:</label>
+                    <div class="d-grid" >
+                        <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="row pt-2">
+                        <div class="col-auto ms-auto">
+                            <p class="pe-5">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm">
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div> 
-        <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
             <!-- Table List -->
-            <table id="table" class="table-sm table-hover" ref="table" :data="data">
+            <table id="tblAllLicenses" class="table-sm table-hover" ref="table" :data="data">
                 <thead>
                     <tr>
                         <th @click="sort('softID')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">License ID</th>
@@ -64,44 +88,32 @@
                 </thead>
                 <tbody>
                     <tr v-for="data in filteredLicenses" :key="data">
-                        <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
-                        <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
-                        <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
-                        <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
-                        <td v-html="highlightMatches(data.softToName)">{{data.softToName}}</td>
-                        <td v-html="highlightMatches(data.softToEmail)">{{data.softToEmail}}</td>
-                        <td v-html="highlightMatches(data.softManufacturer)">{{data.softManufacturer}}</td>
-                        <td v-html="highlightMatches(data.softTotal)">{{data.softTotal}}</td>
-                        <v-chip :color="getColor(data.softAvailable)" style="font-size:11px; height:20px; padding-left:1px; padding-right:1px; margin-top:5px;">
-                            <td v-html="highlightMatches(data.softAvailable)">{{data.softAvailable}}</td>
-                        </v-chip>
-                        <td v-html="highlightMatches(data.softDate)">{{data.softDate}}</td>
-                        <td v-html="highlightMatches(data.softExpired)">{{data.softExpired}}</td>
-                        <td v-if="!isHidden">
-                            <button class="btn-sm btn-action" @click="showModal(data)" modal-no-backdrop data-toggle="modal" data-target="#deploy-license" data-backdrop="static" data-keyboard="false">
-                                <v-icon color="warning" title="Deploy License" style="font-size:16px;">mdi-rocket-launch</v-icon>
-                            </button>
-                            <button class="btn-sm btn-action" @click="showModal(data)" modal-no-backdrop data-toggle="modal" data-target="#upd-license" data-backdrop="static" data-keyboard="false">
-                                <v-icon color="success" title="Edit License" style="font-size:16px;">mdi-pencil</v-icon>
-                            </button>
-                        </td>
+                        <tr v-for="data in sortedLicenses" :key="data">
+                            <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
+                            <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
+                            <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
+                            <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
+                            <td v-html="highlightMatches(data.softToName)">{{data.softToName}}</td>
+                            <td v-html="highlightMatches(data.softToEmail)">{{data.softToEmail}}</td>
+                            <td v-html="highlightMatches(data.softManufacturer)">{{data.softManufacturer}}</td>
+                            <td v-html="highlightMatches(data.softTotal)">{{data.softTotal}}</td>
+                            <v-chip :color="getColor(data.softAvailable)" style="font-size:11px; height:20px; padding-left:1px; padding-right:1px; margin-top:5px;">
+                                <td v-html="highlightMatches(data.softAvailable)">{{data.softAvailable}}</td>
+                            </v-chip>
+                            <td v-html="highlightMatches(data.softDate)">{{data.softDate}}</td>
+                            <td v-html="highlightMatches(data.softExpired)">{{data.softExpired}}</td>
+                            <td v-if="!isHidden">
+                                <button class="btn-sm btn-action" @click="showModal(data)" modal-no-backdrop data-toggle="modal" data-target="#deploy-license" data-backdrop="static" data-keyboard="false">
+                                    <v-icon color="warning" title="Deploy License" style="font-size:16px;">mdi-rocket-launch</v-icon>
+                                </button>
+                                <button class="btn-sm btn-action" @click="showModal(data)" modal-no-backdrop data-toggle="modal" data-target="#upd-license" data-backdrop="static" data-keyboard="false">
+                                    <v-icon color="success" title="Edit License" style="font-size:16px;">mdi-pencil</v-icon>
+                                </button>
+                            </td>
+                        
                     </tr>
                 </tbody>
             </table>
-        </div>
-        <!-- Pagination -->
-        <div class="row pt-2">
-            <div class="col-auto ms-auto">
-                <p class="pe-5">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <span class="me-5 pt-3" style="font-size:11px;">Showing page <b>{{ page }}</b> of <b>{{ numberOfPages }}</b> pages</span>
-                            <li class="page-item"><a class="page-link" @click="prevPage"><v-icon color="gray" size="16">mdi-skip-previous</v-icon></a></li>
-                            <li class="page-item"><a class="page-link" @click="nextPage"><v-icon color="gray" size="16">mdi-skip-next</v-icon></a></li>
-                        </ul>
-                    </nav>
-                </p>
-            </div>
         </div>
     </div>
     </v-row>
@@ -123,6 +135,10 @@
                         <div v-if="updateSuccess" class="alert alert-success" role="alert">
                             <v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon>
                             <strong>Success!</strong> License record updated.
+                        </div>
+                        <div v-if="addError" class="alert alert-danger" role="alert">
+                            <v-icon color="red" size="15px">mdi-alert-circle</v-icon>
+                            Please fill up all of the required fields<span style="color: red;"> &nbsp;*</span>
                         </div>
                         <!-- Update Field Inputs  -->
                         <div class="form-row">
@@ -341,7 +357,7 @@
                         <!-- Alerts -->
                         <div v-if="addSuccess" class="alert alert-success" role="alert">
                             <v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon>
-                            <strong>Success!</strong> New license record added successfully.
+                            <strong>Success!</strong> License Added Successfully.
                         </div>
                         <div v-if="addError" class="alert alert-danger" role="alert">
                             <v-icon color="red" size="15px">mdi-alert-circle</v-icon>
@@ -458,7 +474,7 @@
                         </div>
                         <hr>
                         <div class="modal-bottom">
-                            <button class="mb-3 btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                            <button class="mb-3 btn btn-secondary btn-sm" block @click="cancelModal()" data-dismiss="modal">Cancel</button>
                             <button class="ms-2 mb-3 btn btn-primary btn-sm" block @click.self.prevent="AddLocation()">Add Location</button>
                         </div>
                     </form>
@@ -501,7 +517,7 @@
                         </div>
                         <hr>
                         <div class="modal-bottom">
-                            <button class="mb-3 btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                            <button class="mb-3 btn btn-secondary btn-sm" block @click="cancelModal()" data-dismiss="modal">Cancel</button>
                             <button class="ms-2 mb-3 btn btn-primary btn-sm" block @click.self.prevent="AddCategory()">Add Category</button>
                         </div>
                     </form>
@@ -521,7 +537,6 @@ import { debounce } from "lodash";
 import * as XLSX from 'xlsx' /*npm install xlsx*/
 import jsPDF from "jspdf" /*npm install jspdf --save*/
 import 'jspdf-autotable' /*npm install jspdf jspdf-autotable*/
-import bcrypt from 'bcryptjs';
 export default {
     name: "license",
     data() {
@@ -538,8 +553,8 @@ export default {
             isSearching: false,
             pages:5,
             /*Table Sorting*/
-            currentSort:'softName',
-            currentSortDir:'asc',
+            currentSort:'softID',
+            currentSortDir:'desc',
             ascSort: true,
             //Filter Date
             startDate: null,
@@ -607,19 +622,6 @@ export default {
     
     components: { Topbar, Sidebar },
     created() {
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
-    }
-
         this.getLicenses();
         this.getCategory();
         this.getLocation();
@@ -673,7 +675,7 @@ export default {
         },
         /*Table Pagination*/
         nextPage:function() {
-            if((this.currentPage*this.pageSize) < this.Licenses.length) this.currentPage++;
+            if((this.currentPage*this.pageSize) < this.filteredLicenses.length) this.currentPage++;
             this.page=this.currentPage;
         },
         prevPage:function() {
@@ -684,7 +686,7 @@ export default {
         sort:function(s) {
             //if s == current sort, reverse
             if(s === this.currentSort) {
-                this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+                this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
             } this.currentSort = s;
         },
         setLicensesDebounced: debounce(function(search) {
@@ -720,7 +722,9 @@ export default {
             this.$bvModal.show('out-licenses')
         },
         cancelModal() {
-            window.location.reload()
+            this.$bvModal.hide('upd-licenses')
+            this.$bvModal.hide('out-licenses')
+            this.$bvModal.hide('new-category')
         },
         /* End Show Modals */
         getLicenses() {
@@ -741,13 +745,13 @@ export default {
                 console.log(err);
             });
         },
-        getAssign() {
-            axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getassignlicense').then((res) => {
-                console.log(res.data.license_Assign);
-                this.Assign = res.data.license_Assign;
-            }).catch((err) => {
+        getAssign(){
+            axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getdeployedlicense').then((res) => {
+                console.log(res.data.deployed_Data);
+                this.Assign=res.data.deployed_Data;
+            }) .catch((err) => {
                 console.log(err);
-            });
+        });
         },
         getCategory() {
             axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getlicensecat').then((res) => {
@@ -779,7 +783,6 @@ export default {
                         this.License_Data.softLocation = "";
                     } else {
                         this.locationSuccess = true;
-                        this.locationDuplicateError = false;
                         setTimeout(function() {
                             window.location.reload()
                         }, 1000);
@@ -804,7 +807,6 @@ export default {
                         this.categoryDuplicateError = true;
                         this.LicenseData.softCategory = "";
                     } else {
-                        this.categoryDuplicateError = false;
                         this.categorySuccess = true;
                         this.getCategory();
                         this.LicenseData.softCategory = "";
@@ -834,14 +836,11 @@ export default {
                 axios.post('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=addlicense', data).then((res) => {
                     if (res.data.error) { 
                         this.addDuplicateError = true;
-                        this.addError = false;
-                        
+                        this.AddReset();
                     } else {
                         this.getLicenses();
                         this.getCategory();
                         this.AddReset();
-                        this.addDuplicateError = false;
-                        this.addError = false;
                         this.addSuccess = true;
                         setTimeout(function() {
                             window.location.reload()
@@ -853,39 +852,52 @@ export default {
             }
         },
         updateLicense() {
-            let data = new FormData();
-            data.append("softID", this.License_Data.softID);
-            data.append("softName", this.License_Data.softName);
-            data.append("softCategory", this.License_Data.softCategory);
-            data.append("softKey", this.License_Data.softKey);
-            data.append("softToName", this.License_Data.softToName);
-            data.append("softToEmail", this.License_Data.softToEmail);
-            data.append("softManufacturer", this.License_Data.softManufacturer);
-            data.append("softTotal", this.License_Data.softTotal);
-            data.append("softAvailable", this.License_Data.softAvailable);
-            data.append("softDate", this.License_Data.softDate);
-            data.append("softExpired", this.License_Data.softExpired);
+            /* eslint-disable */
+        var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+            if (!this.License_Data.softName || !this.License_Data.softCategory || !this.License_Data.softKey || !this.License_Data.softToName || !this.License_Data.softToEmail || !this.License_Data.softManufacturer || !this.License_Data.softTotal || !this.License_Data.softAvailable || !this.License_Data.softDate || !this.License_Data.softExpired) {
+                this.addError = true;
+            }
+            else if (!this.License_Data.softToEmail.match(mailformat))
+                        {
+                            alert("Please input a valid email address!");
+                        }
+            else {
+                let data = new FormData();
+                data.append("softID", this.License_Data.softID);
+                data.append("softName", this.License_Data.softName);
+                data.append("softCategory", this.License_Data.softCategory);
+                data.append("softKey", this.License_Data.softKey);
+                data.append("softToName", this.License_Data.softToName);
+                data.append("softToEmail", this.License_Data.softToEmail);
+                data.append("softManufacturer", this.License_Data.softManufacturer);
+                data.append("softTotal", this.License_Data.softTotal);
+                data.append("softAvailable", this.License_Data.softAvailable);
+                data.append("softDate", this.License_Data.softDate);
+                data.append("softExpired", this.License_Data.softExpired);
 
-            axios.post('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=updatelicense', data).then((res) => {
-                if (res.data.error) {
-                    alert("Error");
-                } else {
-                    // this.cancelModal();
-                    // this.successAlert = true;
-                    // this.success = this.dismissSecs;
-                    // location.reload();
-                    this.updateSuccess = true;
-                    setTimeout(function() {
-                        window.location.reload()
-                    }, 1000);
-                }
-            }).catch((err) => {
-                console.log(err);
-            })
+                axios.post('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=updatelicense', data).then((res) => {
+                    if (res.data.error) {
+                        alert("Error");
+                    } else {
+                        // this.cancelModal();
+                        // this.successAlert = true;
+                        // this.success = this.dismissSecs;
+                        // location.reload();
+                        this.updateSuccess = true;
+                        this.addError = false;
+                        setTimeout(function() {
+                            window.location.reload()
+                        }, 1000);
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                })
+            }
         },
         AssignLicense() {
             if (!this.LicenseData.al_emp || !this.LicenseData.al_location || !this.LicenseData.al_date) {
                 this.deployError = true;
+                this.deployDuplicateError = false;
             }
             if (this.LicenseData.al_emp && this.LicenseData.al_location && this.LicenseData.al_date) {
                 let data = new FormData();
@@ -897,10 +909,13 @@ export default {
                 axios.post('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=addassign', data).then((res) => {
                     if (res.data.error) {
                         this.deployDuplicateError = true;
+                        this.deployError = false;
                         this.resetAssign();
                     } else {
                         this.getAssign();
                         this.deploySuccess = true;
+                        this.deployDuplicateError = false;
+                        this.deployError = false;
                         setTimeout(function() {
                             window.location.reload()
                         }, 1000);
@@ -1038,10 +1053,10 @@ export default {
 </script>
 
 <style scoped>
-    th.pointer {
-        cursor: pointer;
-    }
-    .btn-new-category{
+th.pointer {
+    cursor: pointer;
+}
+.btn-new-category{
     display:inline; 
     width:50px; 
     height:23px; 
@@ -1051,8 +1066,7 @@ export default {
     padding-top:0px;
     padding-bottom: 0px;
 }
-
-    .add-license-dates{
+.add-license-dates{
     width:120px !important;
 }
     label, input, textarea, select{
@@ -1087,5 +1101,25 @@ input{
 hr{
     margin-top: -10px;
 }
-
+.pagination-buttons{
+    height:fit-content; 
+    margin-bottom:-10px; 
+    padding-left:15px;
+    margin-top:5px;
+}
+.page-link-lr{
+    height:20px; padding-top:0;
+}
+.page-link-mid{
+    height:20px; padding-top:2px; font-size:11px; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px; padding-top:0; padding-bottom:0; 
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
+}
+table{
+    margin-top: -10px;
+}
 </style>

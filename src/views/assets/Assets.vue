@@ -6,19 +6,31 @@
     <h6 class="page-header"><strong>Assets </strong></h6>
     <v-row>
         <div class="card-buttons d-flex justify-space-between">
-            <span class="page-buttons">
-                <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.." /> &nbsp;
-                <span class="me-2 pt-3" v-if="isSearching">
-                    <v-chip class="blue lighten-5" style="height:25px;">
-                        <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
-                        <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
-                    </v-chip>
-                </span>
-            </span>
+            <!-- <div class="d-flex" style="height:2vh">
+                <div class="d-grid">
+                    <v-text-field v-model="search" outlined prepend-inner-icon="mdi-magnify" label="Search" dense></v-text-field> &nbsp;
+                </div>
+                <div class="d-grid ms-4"> -->
+                    <span class="page-buttons">
+                        <span>
 
+                            <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+                            <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+                        </span> &nbsp;
+                        <span class="pt-3" v-if="isSearching">
+                            <v-chip class="blue lighten-5" style="height:25px;">
+                                <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
+                                <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
+                            </v-chip>
+                        </span>
+                    </span>
+                <!-- </div>
+            </div> -->
             <span class="page-buttons">
+                <!--
                 <button type="button" class="btn btn-light btn-subheader" @click="showExport()" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
-                <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Show Deleted</button>
+                -->
+                <button type="button" class="btn btn-light btn-subheader" @click="goDeleted()">Archives</button>
                 <button type="button" class="btn btn-light btn-subheader-third" data-toggle="modal" data-target="#add-licenses" @click="openAddForm()" data-backdrop="static" data-keyboard="false">Create New</button>
             </span>
         </div>
@@ -27,53 +39,89 @@
     <v-row>
         <!-- eslint-disable -->
         <!-- prettier-ignore -->
-
-        <div id="tblUser" class="card" style="width:100%; padding:5px; ">
-
-            <div class="table-responsive-sm" style="padding:0px 5px 0px 5px;">
-                <table id="tblAllAsset" class="table-sm table-hover">
+        <div id="tblUser" class="card" >
+            <div class="table-responsive-sm">
+                <div class="d-flex justify-content-end">
+                    <!-- Pagination and Rows -->
+                    
+                    <div class="row align-items-center pagination-buttons"> 
+                        <label class="rows-per-page-label">Rows per page:</label>
+                        <div class="d-grid" >
+                            <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize" >
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                                 <option value="20">20</option>
+                            </select>
+                        </div>
+                    
+                        <div class="row pt-2">
+                            <div class="col-auto ms-auto">
+                                <p class="pe-5">
+                                 
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination pagination-sm" >
+                                            <li class="page-item" >
+                                                <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                                            <li class="page-item">
+                                                <a class="page-link page-link-lr" @click="nextPage" aria-label="Next"  >
+                                                    <span aria-hidden="true" >&raquo;</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table id="tblAllAsset" class="table-sm table-hover" ref="table" :data="data">
                     <thead class="">
                         <tr>
-                            <th>Asset ID</th>
-                            <th>Asset Tag</th>
-                            <th>Serial Number</th>
-                            <th>Category</th>
-                            <th>Model</th>
-                            <th>Status</th>
-                            <th>Purchase Date</th>
-                            <th>Supplier</th>
-                            <th>Location</th>
+                            <th @click="sort('asset_id')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Asset ID</th>
+                            <th @click="sort('asset_tag')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Asset Tag</th>
+                            <th @click="sort('serialno')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Serial Number</th>
+                            <th @click="sort('category')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Category</th>
+                            <th @click="sort('model')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Model</th>
+                            <th @click="sort('status')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Status</th>
+                            <th @click="sort('purchase_date')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Purchase Date</th>
+                            <th @click="sort('supplier')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Supplier</th>
+                            <th @click="sort('asset_location')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Location</th>
                             <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="asset in filteredAssets" :key="asset">
-                            <td v-html="highlightMatches(asset.asset_id)">{{ asset.asset_id }}</td>
-                            <td v-html="highlightMatches(asset.asset_tag)">{{ asset.asset_tag }}</td>
-                            <td v-html="highlightMatches(asset.serialno)">{{ asset.serialno }}</td>
-                            <td v-html="highlightMatches(asset.category)">{{ asset.category }}</td>
-                            <td v-html="highlightMatches(asset.model)">{{ asset.model }}</td>
-                            <v-chip :color="getColor(asset.status)" dark style="font-size:11px; height:20px; padding-left:5px; padding-right:5px; margin-top:5px; "><td v-html="highlightMatches(asset.status)">
-                                {{ asset.status }} 
-                            </td></v-chip>
-                            <td v-html="highlightMatches(asset.purchase_date)">{{ asset.purchase_date }}</td>
-                            <td v-html="highlightMatches(asset.supplier)">{{ asset.supplier }}</td>
-                            <td v-html="highlightMatches(asset.asset_location)">{{ asset.asset_location }}</td>
-                            <td v-html="highlightMatches(asset.notes)">{{ asset.notes }}</td>
-                            <td>
-                                <button class="btn-sm btn-action" @click="showModal(asset)" modal-no-backdrop data-toggle="modal" data-target="#upd-licenses" data-backdrop="static" data-keyboard="false">
-                                    <v-icon color="success" title="Edit Asset" style="font-size:16px;">mdi-pencil</v-icon>
-                                </button>
-                                <button class="btn-sm btn-action" @click="showModalDelete(asset)" modal-no-backdrop data-toggle="modal" data-target="#delete-asset">
-                                    <v-icon color="red" title="Delete Asset" style="font-size:16px;">mdi-delete</v-icon>
-                                </button>
-                            </td>
+                            <tr v-for="asset in sortedAssets" :key="asset">
+                                <td v-html="highlightMatches(asset.asset_id)">{{ asset.asset_id }}</td>
+                                <td v-html="highlightMatches(asset.asset_tag)">{{ asset.asset_tag }}</td>
+                                <td v-html="highlightMatches(asset.serialno)">{{ asset.serialno }}</td>
+                                <td v-html="highlightMatches(asset.category)">{{ asset.category }}</td>
+                                <td v-html="highlightMatches(asset.model)">{{ asset.model }}</td>
+                                <v-chip :color="getColor(asset.status)" dark style="font-size:11px; height:20px; padding-left:5px; padding-right:5px; margin-top:5px; "><td v-html="highlightMatches(asset.status)">
+                                    {{ asset.status }} 
+                                </td></v-chip>
+                                <td v-html="highlightMatches(asset.purchase_date)">{{ asset.purchase_date }}</td>
+                                <td v-html="highlightMatches(asset.supplier)">{{ asset.supplier }}</td>
+                                <td v-html="highlightMatches(asset.asset_location)">{{ asset.asset_location }}</td>
+                                <td v-html="highlightMatches(asset.notes)">{{ asset.notes }}</td>
+                                <td>
+                                    <button class="btn-sm btn-action" @click="showModal(asset)" modal-no-backdrop data-toggle="modal" data-target="#upd-licenses" data-backdrop="static" data-keyboard="false">
+                                        <v-icon color="success" title="Edit Asset" style="font-size:16px;">mdi-pencil</v-icon>
+                                    </button>
+                                    <button class="btn-sm btn-action" @click="showModalDelete(asset)" modal-no-backdrop data-toggle="modal" data-target="#delete-asset">
+                                        <v-icon color="red" title="Delete Asset" style="font-size:16px;">mdi-delete</v-icon>
+                                    </button>
+                                </td>
+                            </tr>
                         </tr>
                     </tbody>
                 </table>
             </div>
-
         </div>
     </v-row>
 
@@ -175,7 +223,6 @@
                 <div class="modal-body">
                     <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;New asset record added.</div>
                     <div v-if="alertError" class="alert alert-danger" role="alert"><v-icon color="red" size="15px">mdi-alert-circle</v-icon>&nbsp;Please fill up all of the required fields<span style="color: red;"> &nbsp;*</span></div>
-                    <div v-if="alertWarning" class="alert alert-danger" role="alert"><v-icon color="red" size="15px">mdi-alert-circle</v-icon>&nbsp;Asset record already exists!</div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -277,6 +324,7 @@
             </div>
         </div>
     </div>
+
     <!--Modal For Delete Asset-->
     <div class="modal fade modal-update-asset" id="delete-asset" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog rtn-asset" role="document">
@@ -288,7 +336,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Asset record moved to archived.</div>
+                    <div v-if="alertSuccess" class="alert alert-success" role="alert"><v-icon color="success" size="15px">mdi-checkbox-marked-circle</v-icon> &nbsp;<strong>Success!</strong>&nbsp;Asset record moved to archives.</div>
                 
                     <form action="" method="POST">
 
@@ -329,9 +377,7 @@
 <script>
 import Sidebar from "../../components/Sidebar";
 import Topbar from "../../components/Topbar";
-import {
-    debounce
-} from "lodash";
+import { debounce } from "lodash";
 import axios from "axios";
 import jsPDF from "jspdf" /*npm install jspdf --save*/
 //import * as XLSX from 'xlsx' /*npm install xlsx*/
@@ -345,12 +391,21 @@ export default {
             isActive: true,
             isHidden: false,
             /*Pagination*/
-            btnAdd: true,
+            page: 1,
+            perPage: 10,
+            currentPage: 1,
+            pageSize:5,
+            search: "",
+            isSearching: false,
+            pages:5,
+            /*Table Sorting*/
+            currentSort:'asset_id',
+            currentSortDir:'desc',
+            ascSort: true,
+            /*Alert*/
             alertSuccess: null,
             alertError: null,
-            alertWarning: null,
-            search: '',
-            isSearching: false,
+            btnAdd: true,
             UsersData: {
                 user_id: null,
                 asset_tag: null,
@@ -375,7 +430,7 @@ export default {
         Sidebar
     },
     created() {
-    if(this.$session.exists('login-session')) {
+     if(this.$session.exists('login-session')) {
         var i = this.$session.get('login-session');
         var j = this.$session.get('login-session-enc');
 
@@ -387,7 +442,6 @@ export default {
     else {
         this.$router.push({ path: '/' })
     }
-    
         this.getAllAssets();
         this.getDropdownCat();
         this.getDropdownStatus();
@@ -402,6 +456,51 @@ export default {
         }
     },
     methods: {
+        Reset() {
+            this.UsersData.asset_tag = "";
+            this.UsersData.serialno = "";
+            this.UsersData.model = "";
+            this.UsersData.category = "";
+            this.UsersData.purchase_date = "";
+            this.UsersData.supplier = "";
+            this.UsersData.notes = "";
+            this.UsersData.asset_location = "";
+        },
+        /*Table Pagination*/
+        nextPage:function() {
+            if((this.currentPage*this.pageSize) < this.Assets.length) this.currentPage++;
+            this.page=this.currentPage;
+        },
+        prevPage:function() {
+            if(this.currentPage > 1) this.currentPage--;
+            this.page=this.currentPage;
+        },
+        /*Table Sorting*/
+        sort:function(s) {
+            //if s == current sort, reverse
+            if(s === this.currentSort) {
+                this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
+            } this.currentSort = s;
+        },
+        /*Search Filter*/
+        setAssetsDebounced: debounce(function (search) {
+            this.isSearching = true;
+            setTimeout(function () {
+                this.isSearching = false;
+                this.filteredAssets = this.Assets.filter(asset =>
+                    asset.asset_id.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.asset_tag.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.serialno.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.category.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.model.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.status.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.purchase_date.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.supplier.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.asset_location.toLowerCase().includes(search.toLowerCase()) ||
+                    asset.notes.toLowerCase().includes(search.toLowerCase())
+                );
+            }.bind(this), 1000);
+        }, 2000),
         getColor(status) {
             if (status == "Ready to deploy") return 'success'
             else return '#AFABAB'
@@ -415,37 +514,12 @@ export default {
         cancelModal() {
             window.location.reload();
         },
-        updateLicense() {
-            if (!this.UsersData.asset_tag || !this.UsersData.serialno || !this.UsersData.model || !this.UsersData.category || !this.UsersData.purchase_date || !this.UsersData.supplier || !this.UsersData.asset_location) {
-                this.alertError = true;
-            } else {
-                let data = new FormData();
-                data.append("asset_id", this.UsersData.asset_id);
-                data.append("asset_tag", this.UsersData.asset_tag);
-                data.append("serialno", this.UsersData.serialno);
-                data.append("model", this.UsersData.model);
-                data.append("status", this.UsersData.status);
-                data.append("category", this.UsersData.category);
-                data.append("purchase_date", this.UsersData.purchase_date);
-                data.append("supplier", this.UsersData.supplier);
-                data.append("notes", this.UsersData.notes);
-                data.append("asset_location", this.UsersData.asset_location);
-
-                axios.post('http://localhost/motivit/motivit_ims/src/Api/api.php?action=updateAsset', data).then((res) => {
-                    if (res.data.error) {
-                        alert("Error");
-                        window.location.reload();
-                    } else {
-                        this.alertSuccess = true;
-                        this.alertError = false;
-                        setTimeout(function () {
-                            window.location.reload()
-                        }, 1000);
-                    }
-                }).catch((err) => {
-                    console.log(err);
-                })
-            }
+        openAddForm() {
+            this.Reset();
+            this.alertError = false;
+        },
+        goDeleted() {
+            this.$router.push('/assets/archived');
         },
         getAllAssets() {
             axios
@@ -459,78 +533,6 @@ export default {
                 .catch((err) => {
                     console.log(err);
                 });
-        },
-        DeleteAsset() {
-            let data = new FormData();
-            //this.UsersData = user_id;
-            data.append("id", this.UsersData.asset_id);
-
-            axios
-                .post("http://localhost/motivit/motivit_ims/src/Api/api.php?action=disableAsset", data)
-                .then((res) => {
-                    if (res.data.error) {
-                        alert("ERR");
-                    } else {
-                        
-                        this.alertSuccess = true;
-                        setTimeout(function () {
-                            window.location.reload()
-                        }, 1000);
-                        this.getAllAssets();
-                    }
-                })
-        },
-        Reset() {
-            this.UsersData.asset_tag = "";
-            this.UsersData.serialno = "";
-            this.UsersData.model = "";
-            this.UsersData.category = "";
-            this.UsersData.purchase_date = "";
-            this.UsersData.supplier = "";
-            this.UsersData.notes = "";
-            this.UsersData.asset_location = "";
-        },
-        openAddForm() {
-            this.Reset();
-            this.alertError = false;
-        },
-        AddAsset() {
-            if (!this.UsersData.asset_tag || !this.UsersData.serialno || !this.UsersData.model || !this.UsersData.category || !this.UsersData.purchase_date || !this.UsersData.supplier || !this.UsersData.asset_location) {
-                this.alertError = true;
-            } else {
-                let data = new FormData();
-                data.append("asset_tag", this.UsersData.asset_tag);
-                data.append("serialno", this.UsersData.serialno);
-                data.append("model", this.UsersData.model);
-                //data.append("status", this.UsersData.status);
-                data.append("category", this.UsersData.category);
-                data.append("purchase_date", this.UsersData.purchase_date);
-                data.append("supplier", this.UsersData.supplier);
-                data.append("notes", this.UsersData.notes);
-                data.append("asset_location", this.UsersData.asset_location);
-                axios
-                    .post(
-                        "http://localhost/motivit/motivit_ims/src/Api/api.php?action=addasset",
-                        data
-                    )
-                    .then((res) => {
-                        if (res.data.error) {
-                            this.alertSuccess = false;
-                            this.alertError = false;
-                            this.alertWarning = true;
-                        } else {
-                            this.alertError = false;
-                            this.alertSuccess = true;
-                            this.alertWarning = false;
-                            setTimeout(function () {
-                                window.location.reload()
-                            }, 1000);
-                        }
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
-            }
         },
         getDropdownCat() {
             axios
@@ -558,8 +560,92 @@ export default {
                     console.log(err);
                 });
         },
-        goDeleted() {
-            this.$router.push('/assets/archived');
+        AddAsset() {
+            if (!this.UsersData.asset_tag || !this.UsersData.serialno || !this.UsersData.model || !this.UsersData.category || !this.UsersData.purchase_date || !this.UsersData.supplier || !this.UsersData.asset_location) {
+                this.alertError = true;
+            } else {
+                let data = new FormData();
+                data.append("asset_tag", this.UsersData.asset_tag);
+                data.append("serialno", this.UsersData.serialno);
+                data.append("model", this.UsersData.model);
+                //data.append("status", this.UsersData.status);
+                data.append("category", this.UsersData.category);
+                data.append("purchase_date", this.UsersData.purchase_date);
+                data.append("supplier", this.UsersData.supplier);
+                data.append("notes", this.UsersData.notes);
+                data.append("asset_location", this.UsersData.asset_location);
+                axios
+                    .post(
+                        "http://localhost/motivit/motivit_ims/src/Api/api.php?action=addasset",
+                        data
+                    )
+                    .then((res) => {
+                        if (res.data.error) {
+                            alert(res.data.message);
+                        } else {
+                            this.alertError = false;
+                            this.alertSuccess = true;
+                            setTimeout(function () {
+                                window.location.reload()
+                            }, 1000);
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            }
+        },
+        updateLicense() {
+            if (!this.UsersData.asset_tag || !this.UsersData.serialno || !this.UsersData.model || !this.UsersData.category || !this.UsersData.purchase_date || !this.UsersData.supplier || !this.UsersData.asset_location) {
+                this.alertError = true;
+            } else {
+                let data = new FormData();
+                data.append("asset_id", this.UsersData.asset_id);
+                data.append("asset_tag", this.UsersData.asset_tag);
+                data.append("serialno", this.UsersData.serialno);
+                data.append("model", this.UsersData.model);
+                data.append("status", this.UsersData.status);
+                data.append("category", this.UsersData.category);
+                data.append("purchase_date", this.UsersData.purchase_date);
+                data.append("supplier", this.UsersData.supplier);
+                data.append("notes", this.UsersData.notes);
+                data.append("asset_location", this.UsersData.asset_location);
+
+                axios.post('http://localhost/motivit/motivit_ims/src/Api/api.php?action=updateAsset', data).then((res) => {
+                    if (res.data.error) {
+                        alert("Error");
+                        window.location.reload();
+                    } else {
+                        this.alertError = false;
+                        this.alertSuccess = true;
+                        setTimeout(function () {
+                            window.location.reload()
+                        }, 1000);
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                })
+            }
+        },
+        DeleteAsset() {
+            let data = new FormData();
+            //this.UsersData = user_id;
+            data.append("id", this.UsersData.asset_id);
+
+            axios
+                .post("http://localhost/motivit/motivit_ims/src/Api/api.php?action=disableAsset", data)
+                .then((res) => {
+                    if (res.data.error) {
+                        alert("ERR");
+                    } else {
+                        
+                        this.alertSuccess = true;
+                        setTimeout(function () {
+                            window.location.reload()
+                        }, 1000);
+                        this.getAllAssets();
+                    }
+                })
         },
         exportPDF() {
             const doc = new jsPDF('l', 'mm', 'legal')
@@ -577,56 +663,21 @@ export default {
                         columnWidth: 'auto'
                     }
                 },
-                columns: [{
-                        header: 'asset_id'
-                    },
-                    {
-                        header: 'asset_tag'
-                    },
-                    {
-                        header: 'serial_no'
-                    },
-                    {
-                        header: 'category'
-                    },
-                    {
-                        header: 'model'
-                    },
-                    {
-                        header: 'status'
-                    },
-                    {
-                        header: 'purhase_date'
-                    },
-                    {
-                        header: 'supplier'
-                    },
-                    {
-                        header: 'location'
-                    },
-
+                columns: [
+                    { header: 'asset_id' },
+                    { header: 'asset_tag' },
+                    { header: 'serial_no' },
+                    { header: 'category' },
+                    { header: 'model' },
+                    { header: 'status' },
+                    { header: 'purhase_date'},
+                    { header: 'supplier' },
+                    { header: 'location' },
                 ],
             });
             doc.save('Report-Asset_All.pdf')
         },
-        setAssetsDebounced: debounce(function (search) {
-            this.isSearching = true;
-            setTimeout(function () {
-                this.isSearching = false;
-                this.filteredAssets = this.Assets.filter(asset =>
-                    asset.asset_id.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.asset_tag.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.serialno.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.category.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.model.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.status.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.purchase_date.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.supplier.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.asset_location.toLowerCase().includes(search.toLowerCase()) ||
-                    asset.notes.toLowerCase().includes(search.toLowerCase())
-                );
-            }.bind(this), 1000);
-        }, 2000),
+        /*Search Highlight*/
         highlightMatches(text) {
             const matchExists = text.toLowerCase().includes(this.search.toLowerCase());
             if (!matchExists) return text;
@@ -634,26 +685,25 @@ export default {
             const re = new RegExp(this.search, 'ig');
             return text.replace(re, matchedText => `<b style="background-color: yellow;">${matchedText}</b>`);
         },
-
     },
-    /**
-        computed: {
-            filteredAssets() {
-                return this.Assets.filter((asset) => {
-                    return asset.asset_id.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.asset_tag.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.serialno.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.category.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.model.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.status.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.purchase_date.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.supplier.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.asset_location.toLowerCase().includes(this.search.toLowerCase()) ||
-                        asset.notes.toLowerCase().includes(this.search.toLowerCase());
-                });
-            }
+    computed: {
+        numberOfPages () {
+            return Math.ceil(this.Assets.length / this.pages)
+        },
+        sortedAssets: function() {
+            return this.filteredAssets.filter((row, index) => {
+                let start = (this.currentPage-1)*this.pageSize;
+                let end = this.currentPage*this.pageSize;
+                if(index >= start && index < end) return true;
+            }).sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc') modifier = -1;
+                if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+                if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+                return 0;
+            });
         }
-        */
+    }       
 };
 </script>
 
@@ -681,12 +731,25 @@ input {
     margin-top: -10px;
 }
 
+th.pointer {
+    cursor: pointer;
+}
+
 .btn-primary,
 .btn-secondary,
-.btn-success,
 .btn-confirm {
     height: 25px;
     padding: 2px 7px 2px 7px;
+}
+
+/* .v-text-field.v-text-field--outlined .v-input__control{
+    min-height: 10px;
+} */
+
+.page-item{
+    font-size: 13px;
+    text-align: center;
+    margin: 2px;
 }
 
 .modal-header {
@@ -703,5 +766,23 @@ input {
     padding-right: 0;
     margin-right: 2px;
     text-decoration: none;
+}
+.pagination-buttons{
+    height:fit-content; 
+    margin-bottom:5px; 
+    padding-left:15px;
+    margin-top:-2px;
+}
+.page-link-lr{
+    height:20px; padding-top:0;
+}
+.page-link-mid{
+    height:20px; padding-top:2px; font-size:11px; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px; padding-top:0; padding-bottom:0; 
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
 }
 </style>

@@ -4,11 +4,13 @@
     <div class="card-body">
         <img src="../assets/logo.png" alt="MotivIT IMS Logo" style="height:50px; display:inline; float:left; margin-right:15px;">
         <div class="login-page-header"><strong>MotivIT - Inventory Management System Login </strong></div>
+            <div v-if="alertError" class="alert alert-danger" role="alert" style="text-align:center;margin-top:10px;">
+                <v-icon color="red" size="15px" >mdi-alert-circle</v-icon>&nbsp;Invalid username or password!<span style="color: red;"></span>
+            </div>
             
-        
-          <form ref="form" action="" method="POST">
+          <form ref="form" action="" method="POST" class="login-form">
            
-            <br>
+            
             <form-group label-for="usernameLabel1">
                 <input class="login-input form-control" type="text" name="username" v-model="Admin.username" required placeholder="Enter Username">
             </form-group>
@@ -41,6 +43,7 @@ export default {
         return {
 
             AdminID: [],
+            alertError:false,
             
             Admin: {
                 username: null,
@@ -83,11 +86,12 @@ export default {
                 .then((res) => {
                     if (res.data.error) {
                         console.log("Error", res.data);
-                        alert(res.data.message);
+                        this.alertError = true;
                     } 
                     else {
                         console.log("Success", res.data.message);
                         this.AdminID = res.data.user_Data;
+                        this.alertError = false;
 
                         var parsedobj = JSON.parse(JSON.stringify(this.AdminID))
                         console.log(parsedobj[0].id);
@@ -161,6 +165,8 @@ export default {
     margin: 0 auto;
     top: 50%;
 }
-
+.login-form{
+    margin-top:20px;
+}
 
 </style>

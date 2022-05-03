@@ -3,43 +3,93 @@
     <Sidebar />
     <Topbar />
    
-      <h6 class="page-header"><strong>Archived Licenses </strong></h6>
+    <h6 class="page-header"><strong>Archived Licenses </strong></h6>
     <v-row>
       <div class="card-buttons d-flex justify-space-between">
-        <span class="page-buttons">
+         <span class="page-buttons">
+          <span>
+           <input type="text" v-model="search" class="form-control mb-3" id="search" placeholder="Type to search.."/>
+            <v-icon color="gray" class="search-icon">mdi-magnify</v-icon>
+           
+          </span> &nbsp;
+          <span class="pt-3" v-if="isSearching">
+            <v-chip class="blue lighten-5" style="height:25px;">
+              <v-progress-circular indeterminate color="primary" size="15"></v-progress-circular>&nbsp;
+              <v-text style="color:blue; font-size:11px;">Processing Data..</v-text>
+            </v-chip>
+          </span>
         </span>
+        <!--
         <span class="page-buttons">
             <button type="button" class="btn btn-light btn-subheader-third" @click="showExport()" data-toggle="modal" data-target="#exp-options" data-backdrop="static" data-keyboard="false">Export</button>
         </span>
+        -->
       </div>
     </v-row>
 
     <!--Working Deployed Licenses Table -->
     <v-row>
-    <div id="tblUser" class="card">
-        <div class="table-responsive-sm" style="padding:0px 5px 0px 5px">
+    <div id="tblUser" class="card" >
+        <div class="table-responsive-sm" >
+          <div class="d-flex justify-content-end">
+            <!-- Pagination and Rows -->
+            
+            <div class="row align-items-center pagination-buttons"> 
+              <label class="rows-per-page-label">Rows per page:</label>
+              <div class="d-grid">
+                <select class="custom-select form-control-sm rows-per-page-select" name="rows" id="rows" v-model.lazy="pageSize">
+                  <option value="5" selected>5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <div class="row pt-2">
+                <div class="col-auto ms-auto">
+                  <p class="pe-5">
+                    <nav aria-label="Page navigation">
+                      <ul class="pagination pagination-sm">
+                        <li class="page-item">
+                          <a class="page-link page-link-lr" @click="prevPage" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>
+                        </li>
+                        <li class="page-item"><a class="page-link page-link-mid">{{ page }}</a></li>
+                          <li class="page-item">
+                            <a class="page-link page-link-lr" @click="nextPage" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                            </a>
+                          </li>
+                        </ul>
+                    </nav>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           <table id="table" class="table-sm table-hover" ref="table" :data="data" >
               <thead>
                 <tr>
-                  <th>License ID<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>License Name<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>Category<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>Product Key<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>Assigned To<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>Location<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  <th>Deployed Date<span v-html="sortArrow" style="cursor: pointer;"></span></th>
-                  
+                  <th @click="sort('softID')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">License ID</th>
+                  <th @click="sort('softName')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">License Name</th>
+                  <th @click="sort('softCategory')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Category</th>
+                  <th @click="sort('softKey')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Product Key</th>
+                  <th @click="sort('name')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Assigned To</th>
+                  <th @click="sort('location')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Location</th>
+                  <th @click="sort('al_date')" class="pointer" data-bs-toggle="tooltip" data-bs-placement="top" title="Click to Sort">Deployed Date</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="data in filteredDeployed" :key="data">
-                  <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
-                  <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
-                  <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
-                  <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
-                  <td v-html="highlightMatches(data.name)">{{data.name}}</td>
-                  <td v-html="highlightMatches(data.location)">{{data.location}}</td>
-                  <td v-html="highlightMatches(data.al_date)">{{data.al_date}}</td>
+                <tr v-for="data in filteredLicenses" :key="data">
+                  <tr v-for="data in sortedLicenses" :key="data">
+                    <td v-html="highlightMatches(data.softID)">{{data.softID}}</td>
+                    <td v-html="highlightMatches(data.softName)">{{data.softName}}</td>
+                    <td v-html="highlightMatches(data.softCategory)">{{data.softCategory}}</td>
+                    <td v-html="highlightMatches(data.softKey)">{{data.softKey}}</td>
+                    <td v-html="highlightMatches(data.name)">{{data.name}}</td>
+                    <td v-html="highlightMatches(data.location)">{{data.location}}</td>
+                    <td v-html="highlightMatches(data.al_date)">{{data.al_date}}</td>
                   
                 </tr>
               </tbody>
@@ -56,20 +106,26 @@
 import Sidebar from "../../components/Sidebar";
 import Topbar from "../../components/Topbar";
 import axios from "axios";
+import { debounce } from "lodash";
 import * as XLSX from 'xlsx'
 import jsPDF from "jspdf"
 import 'jspdf-autotable'
-import bcrypt from 'bcryptjs';
 export default {
   name: "license",
   data() {
     return {
-      search: '',
       isHidden: false, /*HideTableRow*/
-      page: 1, /*Pagination*/
-      rows: 100,
+     /*Pagination*/
+      page: 1,
       perPage: 10,
       currentPage: 1,
+      pageSize:5,
+      search: "",
+      isSearching: false,
+      pages:5,
+      /*Table Sorting*/
+      currentSort:'softID',
+      currentSortDir:'desc',
       ascSort: true,
       //Alert
       successAlert: false,
@@ -106,29 +162,24 @@ export default {
       Licenses: [],
       Location: [],
       Employee: [],
+      filteredLicenses: [],
     };
   },
-    components: { Topbar, Sidebar },
+  components: { Topbar, Sidebar },
   created(){
-    if(this.$session.exists('login-session')) {
-        var i = this.$session.get('login-session');
-        var j = this.$session.get('login-session-enc');
-
-        bcrypt.compare(i, j, (err, res) => {
-            if (res == 0) 
-            this.$router.push({ path: '/' })
-        })
-    }  
-    else {
-        this.$router.push({ path: '/' })
-    }
-    
-
     //this.getAssign();
     this.getLicenses();
     this.getLocation();
     this.getEmployee();
     this.showDeleted();
+  },
+  watch: {
+    search: {
+      handler(search) {
+        this.setLicensesDebounced(search)
+      },
+      immediate: true,
+      }
   },
   methods:{
     depcountDown(upddeployed) {
@@ -145,16 +196,46 @@ export default {
     showExport(){
       this.$bvModal.show('exp-options')
     },
-    getAssign(){
-      axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getdeployedlicense').then((res) => {
-          console.log(res.data.deployed_Data);
-          this.Assign=res.data.deployed_Data;
-      }) .catch((err) => {
-          console.log(err);
-      });
+    /*Table Pagination*/
+    nextPage:function() {
+      if((this.currentPage*this.pageSize) < this.filteredLicenses.length) this.currentPage++;
+      this.page=this.currentPage;
     },
+    prevPage:function() {
+      if(this.currentPage > 1) this.currentPage--;
+      this.page=this.currentPage;
+    },
+    /*Table Sorting*/
+    sort:function(s) {
+      //if s == current sort, reverse
+      if(s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir==='desc'?'asc':'desc';
+      } this.currentSort = s;
+    },
+    setLicensesDebounced: debounce(function(search) {
+        this.isSearching = true;
+        setTimeout(function(){
+          this.isSearching = false;
+          this.filteredLicenses = this.Assign.filter(data =>
+          data.softName.toLowerCase().includes(search.toLowerCase()) ||
+          data.softCategory.toLowerCase().includes(search.toLowerCase()) ||
+          data.softKey.toLowerCase().includes(search.toLowerCase()) ||
+          data.name.toLowerCase().includes(search.toLowerCase()) ||
+          data.location.toLowerCase().includes(search.toLowerCase()) ||
+          data.al_date.toLowerCase().includes(search.toLowerCase())
+          );
+        }.bind(this),1000);
+    }, 2000),
+    // getAssign(){
+    //   axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getdeployedlicense').then((res) => {
+    //       console.log(res.data.deployed_Data);
+    //       this.Assign=res.data.deployed_Data;
+    //   }) .catch((err) => {
+    //       console.log(err);
+    //   });
+    // },
     getLicenses(){
-      axios.get('http://localhost/motivit/IMS_licenses/src/Api/genelyn.php?action=getlicenseinfo').then((res) => {
+      axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getlicenseinfo').then((res) => {
           console.log(res.data.license_Data);
           this.Licenses=res.data.license_Data;
       }) .catch((err) => {
@@ -162,7 +243,7 @@ export default {
       });
     },
     getLocation(){
-      axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getlicenseloc').then((res) => {
+      axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getlicenseloc').then((res) => {
           console.log(res.data.license_Location);
           this.Location=res.data.license_Location;
       }) .catch((err) => {
@@ -170,90 +251,15 @@ export default {
       });
     },
     getEmployee(){
-      axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getemployee').then((res) => {
+      axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getemployee').then((res) => {
           console.log(res.data.license_Employee);
           this.Employee=res.data.license_Employee;
       }) .catch((err) => {
           console.log(err);
       });
     },
-    updateDeployed(){
-      let data = new FormData();
-      data.append("assign_license_id",this.License_Data.assign_license_id);
-      data.append("softID",this.License_Data.softID);
-      data.append("emp_id", this.LicenseData.al_emp);
-      data.append("loc_id",this.LicenseData.loc_id);
-      data.append("al_date",this.LicenseData.al_date);
-              
-      axios.post('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=updatedeployed',data).then((res)=>{
-        if(res.data.error){
-          alert("Error");
-        } else {
-          // this.cancelModal();
-          this.successAlert = true;
-          this.upddeployed = this.dismissSecs;
-          location.reload();
-        }
-        }).catch((err)=>{
-          console.log(err);
-        })
-    },
-    checkIn(assign_license_id){
-      if(confirm("Are you sure you want to return this item?")){
-        let data = new FormData();
-        this.License_Data = assign_license_id;
-        data.append("assign_license_id", this.License_Data.assign_license_id);
-        data.append("softID",this.License_Data.softID);
-        data.append("emp_id", this.LicenseData.al_emp);
-        data.append("loc_id",this.LicenseData.loc_id);
-
-        axios.post('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=checkin',data).then((res) => {
-          if(res.data.error) {
-            console.log("Error", res.data);
-          } else {
-            this.checkAlert = this.dismissSecs;
-            this.getAssign();
-            location.reload();  
-          }
-        }).catch((err) => {
-          console.log(err);
-        });
-      }
-    },
-    checkInRecords(){
-      axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getcheckinrecords').then((res) => {
-          console.log(res.data.checkIn_Data);
-          this.Assign=res.data.checkIn_Data;
-      }) .catch((err) => {
-          console.log(err);
-      });
-    },
-    //Remove Item
-    removeDeployed(assign_license_id){
-      if(confirm("Are you sure you want to remove this item?")){
-        let data = new FormData();
-        this.License_Data = assign_license_id;
-        data.append("assign_license_id", this.License_Data.assign_license_id);
-        data.append("softID",this.License_Data.softID);
-        data.append("emp_id", this.LicenseData.al_emp);
-
-        axios.post('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=removedeployed',data).then((res) => {
-          if(res.data.error) {
-            console.log("Error", res.data);
-          } else {
-            this.warningAlert = true;
-            this.warning = this.dismissSecs
-            this.Reset();
-            this.getAssign(); 
-            location.reload();
-          }
-        }).catch((err) => {
-          console.log(err);
-        });
-      }
-    },
     showDeleted(){
-      axios.get('http://localhost/motivit/IMS_Licenses/src/Api/genelyn.php?action=getdeletedinfo').then((res) => {
+      axios.get('http://localhost/motivit/motivit_ims/src/Api/genelyn.php?action=getdeletedinfo').then((res) => {
           console.log(res.data.deployed_Data);
           this.Assign=res.data.deployed_Data;
       }) .catch((err) => {
@@ -298,50 +304,24 @@ export default {
       if (!matchExists) return text;
 
       const re = new RegExp(this.search, 'ig');
-      return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+      return text.replace(re, matchedText => `<b style="background-color: yellow;">${matchedText}</b>`);
     },
-    // removeDeployed(al_id){
-    //   if(confirm("Are you sure you want to remove this item?")){
-    //     let data = new FormData();
-    //     this.LicenseData = al_id;
-    //     data.append("al_id",this.LicenseData.al_id);
-
-    //     axios.post('http://localhost/motivit/IMS/src/Api/genelyn.php?action=removedeployed',data).then((res) => {
-    //       if(res.data.error) {
-    //         console.log("Error", res.data);
-    //       } else {
-    //         // this.warningAlert = true;
-    //         // this.warning = this.dismissSecs
-    //         // this.Reset();
-    //         alert(res.data.message);
-    //         this.getAssign();  
-    //       }
-    //     }).catch((err) => {
-    //       console.log(err);
-    //     });
-    //   }
-    // },
   },
   computed: {
     isDisabled: function(){
         return !this.al_Name || !this.al_Category ||!this.al_Key;
     },
-    sortArrow() {
-      if (this.ascSort) {
-        return "&#9652;"; // up arrow
-      } else {
-        return "&#9662;"; // down arrow
-      }
-    },
-    filteredDeployed() {
-      return this.Assign.filter((data) => {
-        return data.softName.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.softCategory.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.softKey.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.lname.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.fname.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.location.toLowerCase().includes(this.search.toLowerCase())
-            ||  data.al_date.toLowerCase().includes(this.search.toLowerCase());
+    sortedLicenses: function() {
+      return this.filteredLicenses.filter((row, index) => {
+        let start = (this.currentPage-1)*this.pageSize;
+        let end = this.currentPage*this.pageSize;
+        if(index >= start && index < end) return true;
+      }).sort((a,b) => {
+          let modifier = 1;
+          if(this.currentSortDir === 'desc') modifier = -1;
+          if(a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+          if(a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+          return 0;
       });
     }
   }
@@ -350,6 +330,29 @@ export default {
 </script>
 <style scoped>
 
-
-
+th.pointer {
+  cursor: pointer;
+}
+.pagination-buttons{
+    height:fit-content; 
+    margin-bottom:-10px; 
+    padding-left:15px;
+    margin-top:5px;
+}
+.page-link-lr{
+    height:20px; padding-top:0;
+}
+.page-link-mid{
+    height:20px; padding-top:2px; font-size:11px; margin-right:-3px; margin-left:-3px;
+}
+.rows-per-page-select{
+    height:20px !important; padding-left:5px; padding-top:0; padding-bottom:0; font-size:12px;font-size:12px; 
+}
+.rows-per-page-label{
+    font-size:11px; margin-right:10px; margin-top:5px;
+    
+}
+table{
+    margin-top: -15px;
+}
 </style>

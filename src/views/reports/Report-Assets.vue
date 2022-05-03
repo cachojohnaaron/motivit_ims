@@ -1,8 +1,12 @@
 <template>
 <div class="dashboard">
-    <Sidebar :drawer="drawer"/>
-    <Topbar @drawerEvent="drawer = !drawer" />
+    <Sidebar />
+    <Topbar />
     <h6 class="page-header" style="margin-left:0px !important;">Report Generation for Assets</h6>
+
+    <v-alert icon="mdi-clock-fast" prominent text type="info"  style="width:fit-content;">
+      <small>Show all lead generation form responses received between the chosen dates.</small>
+    </v-alert>
 
 
     <button class="btn btn-primary btn-gen-rep" data-toggle="modal" data-target="#modal-AllAsset" data-backdrop="static" data-keyboard="false">All Assets</button>
@@ -29,22 +33,25 @@
 
                     <form action="">
                     <label>Custom Date Range (Purchase Date):</label>
+                    
                         <div class="row align-items-center">
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-2">
+                                <button @click.prevent="filterAsset()" class="btn btn-primary block" style="margin-left:10px;">Filter</button>
+                            </div>
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">From</span>
-                                    
                                     <input type="date" id="start-date" class="start-date form-control" v-model="UserInput.start_date">
                                 </div>
                             </div>
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">To</span>
                                    <input type="date" id="end-date" class="end-date form-control" v-model="UserInput.end_date">
                                 </div>
                             </div>
                         </div>
-                        <div><button @click.prevent="filterAsset()" class="btn btn-primary block">Filter</button></div>
+                        
                     </form>
 
 
@@ -125,9 +132,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_allAsset('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
 
                         <!-- Export button option 2 -->
@@ -135,9 +144,10 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_filteredPurchaseDate('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
-                            </div>
+                            </div>-->
                         </div>
                         
                     </form>
@@ -199,12 +209,14 @@
 
                         <!-- Export buttons option 1-->
                         <div class="row align-items-center" v-if="allAssetsOption">
-                            <div class="d-grid col-6">
+                            <div style="width:100%; margin-top:10px;">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_rtdAsset('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
                         
                     </form>
@@ -229,21 +241,24 @@
                     <form action="">
                     <label>Custom Date Range (Deploy Date):</label>
                         <div class="row align-items-center">
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-2">
+                                    <button @click.prevent="filterAssetByDeployDate()" class="btn btn-primary block">Filter</button>
+                            </div>
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">From</span>
                                     
                                     <input type="date" id="start-date" class="start-date form-control" v-model="UserInput.start_date">
                                 </div>
                             </div>
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">To</span>
                                    <input type="date" id="end-date" class="end-date form-control" v-model="UserInput.end_date">
                                 </div>
                             </div>
                         </div>
-                        <div><button @click.prevent="filterAssetByDeployDate()" class="btn btn-primary block">Filter</button></div>
+                        
                     </form>
 
 
@@ -312,9 +327,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_DeployedAsset('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
 
                         <!-- Export button option 2 -->
@@ -322,9 +339,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_filteredDeployedDate('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
                         
                     </form>
@@ -349,21 +368,23 @@
                     <form action="">
                     <label>Custom Date Range (Transaction Date):</label>
                         <div class="row align-items-center">
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-2">
+                                <button @click.prevent="filterAssetByTransactionDate()" class="btn btn-primary block">Filter</button>
+                            </div>
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">From</span>
                                     
                                     <input type="date" id="start-date" class="start-date form-control" v-model="UserInput.start_date">
                                 </div>
                             </div>
-                            <div class="d-grid col-6">
+                            <div class="d-grid col-5">
                                 <div class="input-group flex-nowrap">
                                    <span class="input-group-text" id="addon-wrapping" data-bs-toggle="tooltip" data-bs-placement="top" title="Date of Purchase">To</span>
                                    <input type="date" id="end-date" class="end-date form-control" v-model="UserInput.end_date">
                                 </div>
                             </div>
                         </div>
-                        <div><button @click.prevent="filterAssetByTransactionDate()" class="btn btn-primary block">Filter</button></div>
                     </form>
 
 
@@ -434,9 +455,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_AssetsTransactions('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
 
                         <!-- Export button option 2 -->
@@ -444,9 +467,11 @@
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" v-on:click.self.prevent="PDF_filteredAssetsTransactions('pdf')">PDF</button>
                             </div>
+                            <!--
                             <div class="d-grid col-6">
                                 <button class="btn btn-primary btn-block" @click.self.prevent="exportExcel('xlsx')">Excel</button>
                             </div>
+                            -->
                         </div>
                         
                     </form>

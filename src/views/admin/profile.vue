@@ -3,27 +3,33 @@
 <!-- prettier-ignore -->
 <div class="dashboard">
     
-    <Sidebar :drawer="drawer"/>
-    <Topbar @drawerEvent="drawer = !drawer" />
+    <Sidebar/>
+    <Topbar />
     <v-subheader class="py-0 d-flex justify-space-between rounded-lg">
-        <h6 class="page-header-license"><strong>Admin Profile </strong></h6>
-        <span class="page-buttons-license">
+        <h6 class="page-header"><strong>Admin Profile </strong></h6>
+        <span class="page-buttons">
             <button type="button" class="btn btn-light btn-subheader-third" @click="goAnotherPage()">Manage Other Admin Account</button>
         </span>
     </v-subheader>
-
-    <p>Account Information</p>
-    <div v-for="data in AdminData">
-        <h4>Admin ID: {{ data.id }}</h4>
-        <h4 style="display: inline;">Name: {{ data.fname }} {{data.lname}} </h4>
-        <br>
-        <h4 style="display: inline;">Username: {{ data.username }}  </h4>
-        <button class="btn btn-danger" data-toggle="modal" data-target="#upd-username" @click="Reset()" data-backdrop="static" data-keyboard="false">Change Username </button>
-        <br>
-        <h4 style="display: inline;">Password: **** </h4>
-        <button class="btn btn-danger" data-toggle="modal" data-target="#change-pass" @click="Reset()" data-backdrop="static" data-keyboard="false">Change Password</button>
-    </div><br><br>
-
+    <div class="card">
+        <p>Account Information</p>
+        <div v-for="data in AdminData">
+            <h4 style="font-size:12px;"><strong> Admin ID: </strong><span style="font-size:11px;">{{ data.id }} </span></h4>
+            <h4 style="display: inline;font-size:12px;"><strong>Name: </strong><span style="font-size:11px;">{{ data.fname }} {{data.lname}} </span></h4>
+            <br>
+            <h4 style="display: inline;font-size:12px;"><strong>Username: </strong><span style="font-size:11px;">{{ data.username }}  </span></h4>
+            
+            
+            <!--
+            <h4 style="display: inline;font-size:12px;"><strong>Password:</strong> <span style="font-size:11px;">**** </span>
+            </h4>
+            -->
+            <br><br>
+            
+        </div>
+        <button  class="btn btn-subheader" data-toggle="modal" data-target="#upd-username" @click="Reset()" data-backdrop="static" data-keyboard="false">Change Username </button>
+        <button  class="btn btn-subheader" data-toggle="modal" data-target="#change-pass" @click="Reset()" data-backdrop="static" data-keyboard="false">Change Password</button>
+    </div>
     <!-- Modal For Update Username-->
     <div class="modal fade modal-update-asset" id="upd-username" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="font-size:13px;">
         <div class="modal-dialog" role="document">
@@ -39,7 +45,7 @@
                     <div v-if="alertError" class="alert alert-danger" role="alert">Please fill up all of the required fields<span style="color: red;"> *</span></div>
                     <form action="" method="POST">
 
-                        <br>
+                        
                         <div class="form-row">
 
                             <div class="form-group">
@@ -50,7 +56,7 @@
                         </div>
 
                         <hr>
-                        <div style="width:100%; text-align:right;">
+                        <div class="modal-bottom">
                             <button class="mb-3 btn btn-secondary" block data-dismiss="modal">Cancel</button>
                             <button class="ms-2 mb-3 btn btn-primary" variant="primary" block @click.prevent="updateUsername()">Save Changes</button>
                         </div>
@@ -77,21 +83,19 @@
                     <div v-if="alertError" class="alert alert-danger" role="alert">Please fill up all of the required fields<span style="color: red;"> *</span></div>
                     <form action="" method="POST">
 
-                        <br>
+                        
                         <div class="form-row">
 
                             <div class="form-group">
-                                <label for="new_password"><b>Enter New Password: <span style="color: red;"> *</span></b></label>
-                                <input type="text" name="new_password" class="form-control mb-3" id="new_password" placeholder="" />
-
-                                <label for="new_password"><b>Retype Password: <span style="color: red;"> *</span></b></label>
+                        
+                                <label for="new_password"><b>Enter new password: <span style="color: red;"> *</span></b></label>
                                 <input type="text" name="new_password" class="form-control mb-3" id="new_password" placeholder="" v-model.lazy="UsersData.new_password" />
                             </div>
                  
                         </div>
 
                         <hr>
-                        <div style="width:100%; text-align:right;">
+                        <div class="modal-bottom">
                             <button class="mb-3 btn btn-secondary" block data-dismiss="modal">Cancel</button>
                             <button class="ms-2 mb-3 btn btn-primary" variant="primary" block @click.prevent="updatePassword()">Save Changes</button>
                         </div>
@@ -234,6 +238,18 @@ textarea {
     width: 410px;
     resize: none;
 }
-
-
+.card{
+    width: 250px !important;
+    padding: 10px;
+}
+.btn-subheader{
+    margin-top: 2px;
+}
+.btn-primary, .btn-secondary, .btn-success{
+    height:25px;
+    padding: 2px 7px 2px 7px;
+}
+hr{
+    margin-top: -10px;
+}
 </style>

@@ -18,7 +18,7 @@
    
 
     <v-row>
-        <div id="tblUser" class="card" style="width:700px;padding:5px 5px 0px 5px;">
+        <div id="tblUser" class="card" style="width:700px;padding:5px 5px 0px 5px; padding-top:20px;">
             <div class="table-responsive-sm" >
                 <table id="tblAllAsset" class="table-sm table-hover">
                     <thead class="">
