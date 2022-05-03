@@ -1,128 +1,56 @@
 <template>
-<v-navigation-drawer style="background:#204173;" v-model="drawer" app>
-
-    <!--
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <h3>Bootstrap Slider</h3>
-
-            <ul class="lisst-unstyled components">
-                <p>The Providers</p>
-                <li class="">
-                    <a href="#" data-toggle="collapse" aria-expanded="false">Dashboard</a>
-                </li>
-                <li class="">
-                    <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Licenses</a>
-                    <ul class="collapse lisst-unstyled" id="homeSubmenu">
-                        <li>
-                            <a href="#">List All</a>
-                        </li>
-                        <li>
-                            <a href="#">All Deployed</a>
-                        </li>
-                        <li>
-                            <a href="#">All Ready to Deploy</a>
-                        </li>
-                        <li>
-                            <a href="#">All Archived</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="">
-                    <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Accessories</a>
-                    <ul class="collapse lisst-unstyled" id="homeSubmenu">
-                        <li>
-                            <a href="#">List All</a>
-                        </li>
-                        <li>
-                            <a href="#">All Deployed</a>
-                        </li>
-                        <li>
-                            <a href="#">All Ready to Deploy</a>
-                        </li>
-                        <li>
-                            <a href="#">All Archived</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="">
-                    <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">People</a>
-                    <ul class="collapse lisst-unstyled" id="homeSubmenu">
-                        <li>
-                            <a href="#">Employees</a>
-                        </li>
-                        <li>
-                            <a href="#">Admin</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="">
-                    <a href="#" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Reports</a>
-                    <ul class="collapse lisst-unstyled" id="homeSubmenu">
-                        <li>
-                            <a href="#">List All</a>
-                        </li>
-                        <li>
-                            <a href="#">All Deployed</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+<v-navigation-drawer dark style="background: #1A4684;" v-bind:width="210" :mini-variant.sync="mini" permanent expand-on-hover app>
+    <v-list-item class="px-1">
+        
+        <div style="width:50px; height:75px; ">
+        <img src="../assets/ims_logo2.png"  style=" width:40px; margin-top:10px; margin-left:4px;"/>
+        
         </div>
-    </nav>
-    -->
-
-    <div class="text-center">
+       <span style="font-size:12px; margin-left:10px; "><strong>MOTIVIT INVENTORY MANAGEMENT SYSTEM</strong></span>
         <!--
-            
-            <div class="mb-4">
-                <v-img src="../assets/logo1.png" height="50px"/>
-            </div>
-            -->
-        <h2 class="white--text">LOGO</h2>
-        <h2 class="white--text">IMS</h2>
-    </div>
+        <v-list-item-title style="text-align:center;"><strong>IMS</strong></v-list-item-title>
+        -->
+        <!--
+        <v-btn icon @click.stop="mini = !mini">
+            <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
 
-    <v-divider></v-divider>
+        -->
+    </v-list-item>
 
-    <v-list>
-        <v-list-item v-for="[icon, text] in links" :key="icon" link>
-            <v-list-item-icon>
-                <v-icon style="color:White;">{{ icon }}</v-icon>
-            </v-list-item-icon>
+    <v-divider style="margin-bottom:-5px; margin-top:0px;"></v-divider>
 
-            <v-list-item-content>
-                <a href="/dashboard" style="text-decoration:none; color:white;">
-                    <v-list-item-title>{{ text }}</v-list-item-title>
-                </a>
-            </v-list-item-content>
-        </v-list-item>
+    <v-list dense style="margin-top:20px;">
+        <template v-for="(n, i) in nav">
 
-        <v-list-group v-for="item in items" :key="item.title" v-model="item.active" :prepend-icon="item.action" no-action > 
-            <template v-slot:activator >
+            <v-list-item v-if="n.to" :key="`${i}-a`" :to="n.to" link class="menu-item" v-model="n.active" >
                 <v-list-item-icon>
-                    <v-icon style="color:White;">{{ item.icon }}</v-icon>
+                    <v-icon size="20px">{{ n.icon }}</v-icon>
                 </v-list-item-icon>
-                <v-list-tile>
-                    <v-list-tile-content>
-                        <v-list-tile-title style="color:White;">{{ item.title }}</v-list-tile-title>
-                    </v-list-tile-content>
-                </v-list-tile>
-            </template>
+                <v-list-item-content class="menu-title">
+                    <v-list-item-title>{{ n.label }}</v-list-item-title>
+                </v-list-item-content>
+            </v-list-item>
 
-            <v-list-tile v-for="subItem in item.items" :key="subItem.title">
-                <!--
-                <v-list-tile-action>
-                    <v-icon style="color:White; margin-left:50px; font-size:16px;">{{ subItem.action }}</v-icon>
-                </v-list-tile-action>
-                -->
-                <v-list-tile>
-                    <v-list-tile-content>
-                        <v-list-tile-title style="margin-left: 75px; color:white;">{{ subItem.title }}</v-list-tile-title><br>
-                    </v-list-tile-content>
-                </v-list-tile>
-            </v-list-tile>
-        </v-list-group>
+            <v-list-group v-if="n.subItems" :key="`${i}-b`" class="menu-item" v-model="n.active">
+                <template v-slot:activator >
+                    <v-list-item-icon>
+                        <v-icon class="pr-n3" size="20px">{{ n.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content class="menu-title">
+                        <v-list-item-title>{{ n.label }}</v-list-item-title>
+                    </v-list-item-content>
+                </template>
+                <v-list-item v-for="(s, y) in n.subItems" :key="y" :to="s.to" link class="pl-8">
+                    <v-list-item-icon>
+                        <v-icon size="15px">{{ s.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content class="submenu-title">
+                        <v-list-item-title>{{ s.label }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list-group>
+        </template>
     </v-list>
 </v-navigation-drawer>
 </template>
@@ -130,117 +58,171 @@
 <script>
 export default {
     name: "Sidebar",
-    props: ["drawer"],
     data() {
         return {
-            links: [
-                ["mdi-view-dashboard", "Dashboard"],
+            
+            nav: [
+                {
+                    to: '/dashboard',
+                    label: 'Dashboard',
+                    icon: 'mdi-home',
+                    active:false,
+                },
+                {
+                    to: '',
+                    label: 'Assets',
+                    icon: 'mdi-chart-pie',
+                    active: false,
+                    subItems: [
+                        {
+                            to: '/assets/all',
+                            label: 'All Assets',
+                            icon: 'mdi-arrow-right-bottom',
+                            active: false,
+                        },
+                        {
+                            to: '/assets/deployed',
+                            label: 'Deployed Assets',
+                            icon: 'mdi-arrow-right-bottom',
+                            active: false,
+                        },
+                        {
+                            to: '/assets/RTD',
+                            label: 'Ready to Deploy Assets',
+                            icon: 'mdi-arrow-right-bottom',
+                            active: false,
+                        },
+                        {
+                            to: '/assets/archived',
+                            label: 'Archived Assets',
+                            icon: 'mdi-arrow-right-bottom',
+                            active: false,
+                        },
+                    ]
+                },
+                {
+                    
+                    label: 'Licenses',
+                    icon: 'mdi-content-save',
+                    active: false,
+                    subItems: [
+                        {
+                            to: '/licenses/all',
+                            label: 'All Licenses',
+                            icon: 'mdi-arrow-right-bottom',
+
+                        },
+                        {
+                            to: '/licenses/deployed',
+                            label: 'Deployed Licenses',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/licenses/returned',
+                            label: 'Returned Licenses',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/licenses/Archived',
+                            label: 'Archived Licenses',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        
+                    ]
+                },
+                {
+                    label: 'Accessories',
+                    icon: 'mdi-keyboard',
+                    active: false,
+                    subItems: [
+                        {
+                            to: '/accessories/all',
+                            label: 'All Accessories',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/accessories/deployed',
+                            label: 'Deployed Accessories',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/accessories/archived',
+                            label: 'Archived Accessories',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                    ]
+                },
+                {
+                    label: 'Users',
+                    icon: 'mdi-account-multiple',
+                    active: false,
+                    subItems: [
+                        {
+                            to: '/manage-admins',
+                            label: 'Admin',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/users/employees',
+                            label: 'Employees',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                    ]
+                },
+                {
+                    label: 'Reports',
+                    icon: 'mdi-chart-bar',
+                    active: false,
+                    subItems: [
+                        {
+                            to: '/reports/assets',
+                            label: 'Assets',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/reports/licenses',
+                            label: 'Licenses',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                        {
+                            to: '/reports/accessories',
+                            label: 'Accessories',
+                            icon: 'mdi-arrow-right-bottom',
+                        },
+                    ]
+                },
             ],
-            items: [{
-                    //action: 'restaurant',
-                    icon: "mdi-text-box-multiple",
-                    title: 'Assets',
-                    ref: '/assets',
-                    active: false,
-                    items: [{
-                            title: 'List All',
-
-                        },
-                        {
-                            title: 'All Deployed'
-                        },
-                        {
-                            title: 'All Ready to Deploy'
-                        },
-                        {
-                            title: 'All Archived'
-                        }
-                    ]
-                },
-                {
-                    icon: "mdi-content-save",
-                    title: 'Licenses',
-                    active: false,
-                    items: [{
-                            title: 'List All'
-                        },
-                        {
-                            title: 'All Deployed'
-                        },
-                        {
-                            title: 'All Ready to Deploy'
-                        },
-                        {
-                            title: 'All Archived'
-                        }
-                    ]
-                },
-                {
-                    icon: "mdi-keyboard",
-                    title: 'Accessories',
-                    active: false,
-                    items: [{
-                            title: 'List All'
-                        },
-                        {
-                            title: 'All Deployed'
-                        },
-                        {
-                            title: 'All Ready to Deploy'
-                        },
-                        {
-                            title: 'All Archived'
-                        }
-                    ]
-                },
-                {
-                    icon: "mdi-account-multiple",
-                    title: 'Users',
-                    active: false,
-                    items: [{
-                            title: 'Employees'
-                        },
-                        {
-                            title: 'Admin'
-                        }
-                    ]
-                },
-                {
-                    icon: "mdi-chart-bar",
-                    title: 'Reports',
-                    active: false,
-                    items: [{
-                            title: 'List All'
-                        },
-                        {
-                            title: 'All Deployed'
-                        }
-                    ]
-                },
-            ]
-
-        };
+            mainSidebarDrawer: true,
+            mini: true,
+        }
     },
+    
 };
 </script>
 
-<style scoped></style>
-<!-- 
+<style scoped>
+.v-list-item{
+    text-decoration: none;
+}
 
-export default {
-  name: "Sidebar",
-  props: ["drawer"],
-  data() {
-    return {
-      links: [
-        ["mdi-view-dashboard", "Dashboard"],
-       // ["mdi-account", "Admin"],
-        ["mdi-text-box-multiple", "Assets"],
-        ["mdi-chart-bar", "Reports"],
-        //["mdi-cog", "Settings"],
-      ],
-    };
-  },
-};
+.v-icon,
+.v-list-group .v-list-item .v-icon{
+    text-decoration: none;
+    background: -webkit-linear-gradient(#97dbff, #cbfbfc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+}
+.menu-title{
+    margin-left:-20px;
+}
+.submenu-title{
+    margin-left:-30px;
+}
 
--->
+
+
+
+
+
+</style>

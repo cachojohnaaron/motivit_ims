@@ -3,6 +3,9 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify'
 import router from './router'
 
+import VueSessionStorage from 'vue-sessionstorage'
+Vue.use(VueSessionStorage)
+
 Vue.config.productionTip = false
 
 

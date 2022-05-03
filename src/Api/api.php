@@ -93,6 +93,24 @@ if($action=='getallemployee'){
 	}	
 }
 
+if($action=='getallemployeedeleted'){
+	$sql="SELECT * FROM `employee` WHERE visibility='false' ORDER BY emp_id desc";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
 if($action=='getallemployee2'){
 	$sql="SELECT * FROM `employee` WHERE visibility='true' ORDER BY emp_id desc";
 	$result=$conn->query($sql);
@@ -152,7 +170,7 @@ if($action=='addasset'){
 	$asset_tag = $_POST['asset_tag'];
 	$serialno = $_POST['serialno'];
 	$model = $_POST['model'];
-	$status = $_POST['status'];
+	//$status = $_POST['status'];
 	$category = $_POST['category'];
 	$purchase_date = $_POST['purchase_date'];
 	$supplier = $_POST['supplier'];
@@ -160,7 +178,7 @@ if($action=='addasset'){
 	$asset_location = $_POST['asset_location'];
 	
 
-    $testquery = "SELECT * FROM asset where asset_tag = '$asset_tag'";
+    $testquery = "SELECT * FROM asset where asset_tag = '$asset_tag' AND visibility = 'true'";
     $testresult = $conn->query($testquery);
     $num=mysqli_num_rows($testresult);
     if ($num > 0) {
@@ -168,7 +186,7 @@ if($action=='addasset'){
         $res['message'] = "Asset Already Exist";
     }
     else {
-        $sql="INSERT INTO `asset` (`asset_id`, `asset_tag`, `serialno`, `model`, `status`, `category`, `purchase_date`, `supplier`, `notes`, `asset_img`, `asset_location`, `visibility`) VALUES (NULL, '$asset_tag', '$serialno', '$model', '$status', '$category', '$purchase_date', '$supplier', '$notes', NULL, '$asset_location', 'true')";
+        $sql="INSERT INTO `asset` (`asset_id`, `asset_tag`, `serialno`, `model`, `status`, `category`, `purchase_date`, `supplier`, `notes`, `asset_img`, `asset_location`, `visibility`) VALUES (NULL, '$asset_tag', '$serialno', '$model', 'Ready to deploy', '$category', '$purchase_date', '$supplier', '$notes', NULL, '$asset_location', 'true')";
 		$result=$conn->query($sql);
         if($result===true){
             $res['error']=false;
@@ -183,6 +201,43 @@ if($action=='addasset'){
 //working 3-8-22
 if($action=='getallasset'){
 	$sql="SELECT * FROM `asset` WHERE visibility='true' ORDER BY asset_id desc";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+if($action=='getalllicenses'){
+	$sql="SELECT * FROM `license` WHERE visibility='true' ORDER BY softID desc";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
+
+
+if($action=='getdeletedasset'){
+	$sql="SELECT * FROM `asset` WHERE visibility='false' ORDER BY asset_id desc";
 	$result=$conn->query($sql);
 	$num=mysqli_num_rows($result);
 	$userData=array();
@@ -345,6 +400,24 @@ if($action=='getallaccessory'){
 	}	
 }
 
+if($action=='getallaccessorydeleted'){
+	$sql="SELECT * FROM `accessory` WHERE visibility='false' ORDER BY acs_id desc";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
 if($action=='updateAccessory'){
 	$acs_id = $_POST['acs_id'];
 	$acs_name = $_POST['acs_name'];
@@ -400,6 +473,36 @@ if($action=='deployAccessory'){
 		$res['message']="Somthing Went Wrong";
 	}
 }
+/*if($action=='deployAccessory'){
+
+	$acs_id = $_POST['acs_id'];
+	$emp_id = $_POST['emp_id'];
+
+	$validate = "SELECT * FROM `assign_accessory` WHERE `acs_id` = $acs_id AND `emp_id` = $emp_id";
+	$sql="INSERT INTO `assign_accessory` (`assign_accessory_id`, `acs_id`, `emp_id`, `transaction_type`, `transaction_date`, `transaction_status`) VALUES (NULL, '$acs_id', '$emp_id', 'checkout', NOW(), 'deployed');";
+	$updatequery = "UPDATE `accessory` SET quantity = quantity-1 WHERE `accessory`.`acs_id` = $acs_id;";
+	
+	$validateResult = $conn->query($validate);
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($validateResult);
+
+	if($num > 0){
+		if($result===true){
+			$updResult = $conn->query($updatequery);
+			if ($updResult === true) {
+			$res['error']=false;
+			$res['message']="Accessory Deployed Successfully";
+			}
+		}
+
+		$res['error']=true;
+		$res['message']="Somthing Went Wrong";
+
+	}else{
+		$res['error']=true;
+        $res['message']="Already Assigned to this Employee!";
+	}
+}*/
 
 if($action=='getallaccessoryDeployed'){
 	$sql="SELECT * FROM assign_accessory, employee, accessory 
@@ -428,10 +531,11 @@ if($action=='returnAccessory') {
 
 	$acs_id = $_POST['acs_id'];
 	$emp_id = $_POST['emp_id'];
+	$assign_accessory_id = $_POST['assign_accessory_id'];
 
 	$sql = "INSERT INTO `assign_accessory` (`assign_accessory_id`, `acs_id`, `emp_id`, `transaction_type`, `transaction_date`) VALUES (NULL, '$acs_id', '$emp_id', 'checkin', NOW())";
 	$updatequery = "UPDATE `accessory` SET quantity = quantity+1 WHERE `accessory`.`acs_id` = $acs_id";
-	$updatequery2 = "UPDATE `assign_accessory` SET `transaction_status` = 'returned' WHERE `assign_accessory`.`emp_id` = $emp_id AND `assign_accessory`.`acs_id` = $acs_id";
+	$updatequery2 = "UPDATE `assign_accessory` SET `transaction_status` = 'returned' WHERE `assign_accessory`.`assign_accessory_id` = $assign_accessory_id";
 	$result=$conn->query($sql);
 	if($result===true){
 		$updResult = $conn->query($updatequery);
@@ -472,7 +576,56 @@ if($action=='returnAsset') {
 	}
 }
 
+if($action=='getAssignedItems'){
+	$emp_id = $_POST['emp_id'];
 
+	$sql="SELECT * FROM assign_asset, employee, asset 
+		WHERE employee.emp_id = $emp_id
+		AND (employee.emp_id = assign_asset.emp_id 
+		AND assign_asset.asset_id = asset.asset_id)
+		AND asset.visibility = 'true'	
+		AND assign_asset.transaction_status = 'deployed'";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
+
+if($action=='getAssignedItemsAccessory'){
+	$emp_id = $_POST['emp_id'];
+
+	$sql="SELECT * FROM assign_accessory, employee, accessory 
+		WHERE employee.emp_id = $emp_id
+		AND (employee.emp_id = assign_accessory.emp_id 
+		AND assign_accessory.acs_id = accessory.acs_id)
+		AND accessory.visibility = 'true'
+		AND assign_accessory.transaction_type = 'checkout'
+		AND assign_accessory.transaction_status = 'deployed'";
+	$result=$conn->query($sql);
+	$num=mysqli_num_rows($result);
+	$userData=array();
+	if($num >0){
+		while($row=$result->fetch_assoc()){
+			array_push($userData,$row);
+		}
+		$res['error']=false;
+        $res['user_Data']=$userData;
+
+	}else{
+		$res['error']=false;
+        $res['message']="No Data Found!";
+	}	
+}
 
 
 

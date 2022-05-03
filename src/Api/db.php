@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost","root", "", "motivit_ims");
+$conn = new mysqli("localhost","root", "", "motivit");
 if(!$conn){
     echo "Error. Database not found.";
 }
