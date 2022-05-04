@@ -3,7 +3,7 @@
     <v-list-item class="px-1">
         
         <div style="width:50px; height:75px; ">
-        <img src="../assets/ims_logo2.png"  style=" width:40px; margin-top:10px; margin-left:4px;"/>
+        <img src=""  style=" width:40px; margin-top:10px; margin-left:4px;"/>
         
         </div>
        <span style="font-size:12px; margin-left:10px; "><strong>MOTIVIT INVENTORY MANAGEMENT SYSTEM</strong></span>
